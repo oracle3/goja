@@ -67,7 +67,7 @@ func dateParse(date string) (time.Time, bool) {
 	unix := timeToMsec(t)
 	return t, err == nil && unix >= -8640000000000000 && unix <= 8640000000000000
 }
-
+// 根据时间构造object
 func (r *Runtime) newDateObject(t time.Time, isSet bool) *Object {
 	v := &Object{runtime: r}
 	d := &dateObject{}

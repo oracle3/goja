@@ -10,6 +10,8 @@ import (
 // Idx is a compact encoding of a source position within a file set.
 // It can be converted into a Position for a more convenient, but much
 // larger, representation.
+//Idx是文件集中源位置的压缩编码。
+//它可以转换为一个更方便，但更大的表示位置。
 type Idx int
 
 // Position describes an arbitrary source position

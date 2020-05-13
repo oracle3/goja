@@ -408,7 +408,7 @@ func (c *compiler) compileFunction(v *ast.FunctionDeclaration) {
 	e.emitSetter(c.compileFunctionLiteral(v.Function, false))
 	c.emit(pop)
 }
-
+// 添加指令
 func (c *compiler) emit(instructions ...instruction) {
 	c.p.code = append(c.p.code, instructions...)
 }

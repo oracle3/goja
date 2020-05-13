@@ -120,7 +120,7 @@ type vm struct {
 type instruction interface {
 	exec(*vm)
 }
-
+// int转value
 func intToValue(i int64) Value {
 	if i >= -maxInt && i <= maxInt {
 		if i >= -128 && i <= 127 {
@@ -130,14 +130,14 @@ func intToValue(i int64) Value {
 	}
 	return valueFloat(float64(i))
 }
-
+// float转int
 func floatToInt(f float64) (result int64, ok bool) {
 	if (f != 0 || !math.Signbit(f)) && !math.IsInf(f, 0) && f == math.Trunc(f) && f >= -maxInt && f <= maxInt {
 		return int64(f), true
 	}
 	return 0, false
 }
-
+// float转value
 func floatToValue(f float64) (result Value) {
 	if i, ok := floatToInt(f); ok {
 		return intToValue(i)
@@ -154,7 +154,7 @@ func floatToValue(f float64) (result Value) {
 	}
 	return valueFloat(f)
 }
-
+// value转int
 func toInt(v Value) (int64, bool) {
 	num := v.ToNumber()
 	if i, ok := num.assertInt(); ok {
@@ -167,7 +167,7 @@ func toInt(v Value) (int64, bool) {
 	}
 	return 0, false
 }
-
+// value转int，忽略负0
 func toIntIgnoreNegZero(v Value) (int64, bool) {
 	num := v.ToNumber()
 	if i, ok := num.assertInt(); ok {
@@ -183,7 +183,7 @@ func toIntIgnoreNegZero(v Value) (int64, bool) {
 	}
 	return 0, false
 }
-
+// 堆栈扩展到idx大小
 func (s *valueStack) expand(idx int) {
 	if idx < len(*s) {
 		return
@@ -197,7 +197,7 @@ func (s *valueStack) expand(idx int) {
 		*s = n
 	}
 }
-
+// 更新name的值为v，这里比较奇怪，为啥不是添加数据 elikong
 func (s *stash) put(name string, v Value) bool {
 	if s.obj != nil {
 		if found := s.obj.getStr(name); found != nil {
@@ -214,7 +214,7 @@ func (s *stash) put(name string, v Value) bool {
 		return false
 	}
 }
-
+// 按索引添加
 func (s *stash) putByIdx(idx uint32, v Value) {
 	if s.obj != nil {
 		panic("Attempt to put by idx into an object scope")
@@ -222,14 +222,14 @@ func (s *stash) putByIdx(idx uint32, v Value) {
 	s.values.expand(int(idx))
 	s.values[idx] = v
 }
-
+// 按索引获取
 func (s *stash) getByIdx(idx uint32) Value {
 	if int(idx) < len(s.values) {
 		return s.values[idx]
 	}
 	return _undefined
 }
-
+// 按name获取
 func (s *stash) getByName(name string, _ *vm) (v Value, exists bool) {
 	if s.obj != nil {
 		v = s.obj.getStr(name)
@@ -245,7 +245,7 @@ func (s *stash) getByName(name string, _ *vm) (v Value, exists bool) {
 	return nil, false
 	//return valueUnresolved{r: vm.r, ref: name}, false
 }
-
+// 添加name，但是value值为没有定义
 func (s *stash) createBinding(name string) {
 	if s.names == nil {
 		s.names = make(map[string]uint32)
@@ -255,7 +255,7 @@ func (s *stash) createBinding(name string) {
 		s.values = append(s.values, _undefined)
 	}
 }
-
+// 删除name
 func (s *stash) deleteBinding(name string) bool {
 	if s.obj != nil {
 		return s.obj.deleteStr(name, false)
@@ -267,7 +267,7 @@ func (s *stash) deleteBinding(name string) bool {
 	}
 	return false
 }
-
+// 创建一个存储
 func (vm *vm) newStash() {
 	vm.stash = &stash{
 		outer: vm.stash,
@@ -277,7 +277,7 @@ func (vm *vm) newStash() {
 
 func (vm *vm) init() {
 }
-
+// 虚拟机执行，会被中断
 func (vm *vm) run() {
 	vm.halt = false
 	interrupted := false
@@ -305,18 +305,18 @@ func (vm *vm) run() {
 		panic(v)
 	}
 }
-
+// 设置中断操作
 func (vm *vm) Interrupt(v interface{}) {
 	vm.interruptLock.Lock()
 	vm.interruptVal = v
 	atomic.StoreUint32(&vm.interrupted, 1)
 	vm.interruptLock.Unlock()
 }
-
+// 清除中断
 func (vm *vm) ClearInterrupt() {
 	atomic.StoreUint32(&vm.interrupted, 0)
 }
-
+// 展开上下文堆栈
 func (vm *vm) captureStack(stack []stackFrame, ctxOffset int) []stackFrame {
 	// Unroll the context stack
 	stack = append(stack, stackFrame{prg: vm.prg, pc: vm.pc, funcName: vm.funcName})
@@ -327,7 +327,7 @@ func (vm *vm) captureStack(stack []stackFrame, ctxOffset int) []stackFrame {
 	}
 	return stack
 }
-
+// try的执行，捕获异常
 func (vm *vm) try(f func()) (ex *Exception) {
 	var ctx context
 	vm.saveCtx(&ctx)
@@ -387,22 +387,22 @@ func (vm *vm) try(f func()) (ex *Exception) {
 func (vm *vm) runTry() (ex *Exception) {
 	return vm.try(vm.run)
 }
-
+// 压栈
 func (vm *vm) push(v Value) {
 	vm.stack.expand(vm.sp)
 	vm.stack[vm.sp] = v
 	vm.sp++
 }
-
+// 出栈
 func (vm *vm) pop() Value {
 	vm.sp--
 	return vm.stack[vm.sp]
 }
-
+// 访问上个栈
 func (vm *vm) peek() Value {
 	return vm.stack[vm.sp-1]
 }
-
+// 缓存虚拟机状态到context
 func (vm *vm) saveCtx(ctx *context) {
 	ctx.prg = vm.prg
 	ctx.funcName = vm.funcName
@@ -411,7 +411,7 @@ func (vm *vm) saveCtx(ctx *context) {
 	ctx.sb = vm.sb
 	ctx.args = vm.args
 }
-
+// ctx入栈
 func (vm *vm) pushCtx() {
 	/*
 		vm.ctxStack = append(vm.ctxStack, context{
@@ -424,7 +424,7 @@ func (vm *vm) pushCtx() {
 	vm.callStack = append(vm.callStack, context{})
 	vm.saveCtx(&vm.callStack[len(vm.callStack)-1])
 }
-
+// 从ctx中恢复到虚拟机
 func (vm *vm) restoreCtx(ctx *context) {
 	vm.prg = ctx.prg
 	vm.funcName = ctx.funcName
@@ -433,7 +433,7 @@ func (vm *vm) restoreCtx(ctx *context) {
 	vm.sb = ctx.sb
 	vm.args = ctx.args
 }
-
+// 出栈ctx，同时恢复虚拟机
 func (vm *vm) popCtx() {
 	l := len(vm.callStack) - 1
 	vm.prg = vm.callStack[l].prg
@@ -447,7 +447,7 @@ func (vm *vm) popCtx() {
 
 	vm.callStack = vm.callStack[:l]
 }
-
+// 取当前的对象
 func (r *Runtime) toObject(v Value, args ...interface{}) *Object {
 	//r.checkResolveable(v)
 	if obj, ok := v.(*Object); ok {
@@ -459,7 +459,7 @@ func (r *Runtime) toObject(v Value, args ...interface{}) *Object {
 		panic(r.NewTypeError("Value is not an object: %s", v.String()))
 	}
 }
-
+// 取当前的对象
 func (r *Runtime) toCallee(v Value) *Object {
 	if obj, ok := v.(*Object); ok {
 		return obj
@@ -479,14 +479,14 @@ func (r *Runtime) toCallee(v Value) *Object {
 type _newStash struct{}
 
 var newStash _newStash
-
+// newStash指令执行
 func (_newStash) exec(vm *vm) {
 	vm.newStash()
 	vm.pc++
 }
 
 type loadVal uint32
-
+// loadVal指令执行
 func (l loadVal) exec(vm *vm) {
 	vm.push(vm.prg.values[l])
 	vm.pc++
@@ -495,7 +495,7 @@ func (l loadVal) exec(vm *vm) {
 type _loadUndef struct{}
 
 var loadUndef _loadUndef
-
+// loadUndef指令执行
 func (_loadUndef) exec(vm *vm) {
 	vm.push(_undefined)
 	vm.pc++
@@ -504,7 +504,7 @@ func (_loadUndef) exec(vm *vm) {
 type _loadNil struct{}
 
 var loadNil _loadNil
-
+// loadNil指令执行
 func (_loadNil) exec(vm *vm) {
 	vm.push(nil)
 	vm.pc++
@@ -513,14 +513,14 @@ func (_loadNil) exec(vm *vm) {
 type _loadGlobalObject struct{}
 
 var loadGlobalObject _loadGlobalObject
-
+// loadGlobalObject指令执行
 func (_loadGlobalObject) exec(vm *vm) {
 	vm.push(vm.r.globalObject)
 	vm.pc++
 }
 
 type loadStack int
-
+// loadStack指令执行
 func (l loadStack) exec(vm *vm) {
 	// l < 0 -- arg<-l-1>
 	// l > 0 -- var<l-1>
@@ -544,7 +544,7 @@ func (l loadStack) exec(vm *vm) {
 type _loadCallee struct{}
 
 var loadCallee _loadCallee
-
+// loadCallee指令执行
 func (_loadCallee) exec(vm *vm) {
 	vm.push(vm.stack[vm.sb-1])
 	vm.pc++
@@ -566,13 +566,13 @@ func (vm *vm) storeStack(s int) {
 }
 
 type storeStack int
-
+// storeStack指令执行
 func (s storeStack) exec(vm *vm) {
 	vm.storeStack(int(s))
 }
 
 type storeStackP int
-
+// storeStackP指令执行
 func (s storeStackP) exec(vm *vm) {
 	vm.storeStack(int(s))
 	vm.sp--
@@ -581,7 +581,7 @@ func (s storeStackP) exec(vm *vm) {
 type _toNumber struct{}
 
 var toNumber _toNumber
-
+// toNumber指令执行
 func (_toNumber) exec(vm *vm) {
 	vm.stack[vm.sp-1] = vm.stack[vm.sp-1].ToNumber()
 	vm.pc++
@@ -590,7 +590,7 @@ func (_toNumber) exec(vm *vm) {
 type _add struct{}
 
 var add _add
-
+// add指令执行
 func (_add) exec(vm *vm) {
 	right := vm.stack[vm.sp-1]
 	left := vm.stack[vm.sp-2]
@@ -636,7 +636,7 @@ func (_add) exec(vm *vm) {
 type _sub struct{}
 
 var sub _sub
-
+// sub指令执行
 func (_sub) exec(vm *vm) {
 	right := vm.stack[vm.sp-1]
 	left := vm.stack[vm.sp-2]
@@ -660,7 +660,7 @@ end:
 type _mul struct{}
 
 var mul _mul
-
+// mul指令执行
 func (_mul) exec(vm *vm) {
 	left := vm.stack[vm.sp-2]
 	right := vm.stack[vm.sp-1]
@@ -694,7 +694,7 @@ end:
 type _div struct{}
 
 var div _div
-
+// div指令执行
 func (_div) exec(vm *vm) {
 	left := vm.stack[vm.sp-2].ToFloat()
 	right := vm.stack[vm.sp-1].ToFloat()
@@ -753,7 +753,7 @@ end:
 type _mod struct{}
 
 var mod _mod
-
+// mod指令执行
 func (_mod) exec(vm *vm) {
 	left := vm.stack[vm.sp-2]
 	right := vm.stack[vm.sp-1]
@@ -786,7 +786,7 @@ end:
 type _neg struct{}
 
 var neg _neg
-
+// neg指令执行
 func (_neg) exec(vm *vm) {
 	operand := vm.stack[vm.sp-1]
 
@@ -813,7 +813,7 @@ func (_neg) exec(vm *vm) {
 type _plus struct{}
 
 var plus _plus
-
+// plus指令执行
 func (_plus) exec(vm *vm) {
 	vm.stack[vm.sp-1] = vm.stack[vm.sp-1].ToNumber()
 	vm.pc++
@@ -822,7 +822,7 @@ func (_plus) exec(vm *vm) {
 type _inc struct{}
 
 var inc _inc
-
+// inc指令执行
 func (_inc) exec(vm *vm) {
 	v := vm.stack[vm.sp-1]
 
@@ -841,7 +841,7 @@ end:
 type _dec struct{}
 
 var dec _dec
-
+// dec指令执行
 func (_dec) exec(vm *vm) {
 	v := vm.stack[vm.sp-1]
 
@@ -860,7 +860,7 @@ end:
 type _and struct{}
 
 var and _and
-
+// and指令执行
 func (_and) exec(vm *vm) {
 	left := toInt32(vm.stack[vm.sp-2])
 	right := toInt32(vm.stack[vm.sp-1])
@@ -872,7 +872,7 @@ func (_and) exec(vm *vm) {
 type _or struct{}
 
 var or _or
-
+// or指令执行
 func (_or) exec(vm *vm) {
 	left := toInt32(vm.stack[vm.sp-2])
 	right := toInt32(vm.stack[vm.sp-1])
@@ -884,7 +884,7 @@ func (_or) exec(vm *vm) {
 type _xor struct{}
 
 var xor _xor
-
+// xor指令执行
 func (_xor) exec(vm *vm) {
 	left := toInt32(vm.stack[vm.sp-2])
 	right := toInt32(vm.stack[vm.sp-1])
@@ -896,7 +896,7 @@ func (_xor) exec(vm *vm) {
 type _bnot struct{}
 
 var bnot _bnot
-
+// bnot指令执行
 func (_bnot) exec(vm *vm) {
 	op := toInt32(vm.stack[vm.sp-1])
 	vm.stack[vm.sp-1] = intToValue(int64(^op))
@@ -906,7 +906,7 @@ func (_bnot) exec(vm *vm) {
 type _sal struct{}
 
 var sal _sal
-
+// sal指令执行
 func (_sal) exec(vm *vm) {
 	left := toInt32(vm.stack[vm.sp-2])
 	right := toUInt32(vm.stack[vm.sp-1])
@@ -918,7 +918,7 @@ func (_sal) exec(vm *vm) {
 type _sar struct{}
 
 var sar _sar
-
+// sar指令执行
 func (_sar) exec(vm *vm) {
 	left := toInt32(vm.stack[vm.sp-2])
 	right := toUInt32(vm.stack[vm.sp-1])
@@ -930,7 +930,7 @@ func (_sar) exec(vm *vm) {
 type _shr struct{}
 
 var shr _shr
-
+// shr指令执行
 func (_shr) exec(vm *vm) {
 	left := toUInt32(vm.stack[vm.sp-2])
 	right := toUInt32(vm.stack[vm.sp-1])
@@ -942,14 +942,14 @@ func (_shr) exec(vm *vm) {
 type _halt struct{}
 
 var halt _halt
-
+// halt指令执行
 func (_halt) exec(vm *vm) {
 	vm.halt = true
 	vm.pc++
 }
 
 type jump int32
-
+// jump指令执行
 func (j jump) exec(vm *vm) {
 	vm.pc += int(j)
 }
@@ -957,7 +957,7 @@ func (j jump) exec(vm *vm) {
 type _setElem struct{}
 
 var setElem _setElem
-
+// setElem指令执行
 func (_setElem) exec(vm *vm) {
 	obj := vm.stack[vm.sp-3].ToObject(vm.r)
 	propName := vm.stack[vm.sp-2]
@@ -973,7 +973,7 @@ func (_setElem) exec(vm *vm) {
 type _setElemStrict struct{}
 
 var setElemStrict _setElemStrict
-
+// setElemStrict指令执行
 func (_setElemStrict) exec(vm *vm) {
 	obj := vm.r.toObject(vm.stack[vm.sp-3])
 	propName := vm.stack[vm.sp-2]
@@ -989,7 +989,7 @@ func (_setElemStrict) exec(vm *vm) {
 type _deleteElem struct{}
 
 var deleteElem _deleteElem
-
+// deleteElem指令执行
 func (_deleteElem) exec(vm *vm) {
 	obj := vm.r.toObject(vm.stack[vm.sp-2])
 	propName := vm.stack[vm.sp-1]
@@ -1005,7 +1005,7 @@ func (_deleteElem) exec(vm *vm) {
 type _deleteElemStrict struct{}
 
 var deleteElemStrict _deleteElemStrict
-
+// deleteElemStrict指令执行
 func (_deleteElemStrict) exec(vm *vm) {
 	obj := vm.r.toObject(vm.stack[vm.sp-2])
 	propName := vm.stack[vm.sp-1]
@@ -1016,7 +1016,7 @@ func (_deleteElemStrict) exec(vm *vm) {
 }
 
 type deleteProp string
-
+// deleteProp指令执行
 func (d deleteProp) exec(vm *vm) {
 	obj := vm.r.toObject(vm.stack[vm.sp-1])
 	if !obj.self.hasPropertyStr(string(d)) || obj.self.deleteStr(string(d), false) {
@@ -1028,7 +1028,7 @@ func (d deleteProp) exec(vm *vm) {
 }
 
 type deletePropStrict string
-
+// deletePropStrict指令执行
 func (d deletePropStrict) exec(vm *vm) {
 	obj := vm.r.toObject(vm.stack[vm.sp-1])
 	obj.self.deleteStr(string(d), true)
@@ -1037,7 +1037,7 @@ func (d deletePropStrict) exec(vm *vm) {
 }
 
 type setProp string
-
+// setProp指令执行
 func (p setProp) exec(vm *vm) {
 	val := vm.stack[vm.sp-1]
 	vm.stack[vm.sp-2].ToObject(vm.r).self.putStr(string(p), val, false)
@@ -1047,7 +1047,7 @@ func (p setProp) exec(vm *vm) {
 }
 
 type setPropStrict string
-
+// setPropStrict指令执行
 func (p setPropStrict) exec(vm *vm) {
 	obj := vm.stack[vm.sp-2]
 	val := vm.stack[vm.sp-1]
@@ -1060,7 +1060,7 @@ func (p setPropStrict) exec(vm *vm) {
 }
 
 type setProp1 string
-
+// setProp1指令执行
 func (p setProp1) exec(vm *vm) {
 	vm.r.toObject(vm.stack[vm.sp-2]).self._putProp(string(p), vm.stack[vm.sp-1], true, true, true)
 
@@ -1071,7 +1071,7 @@ func (p setProp1) exec(vm *vm) {
 type _setProto struct{}
 
 var setProto _setProto
-
+// setProto指令执行
 func (_setProto) exec(vm *vm) {
 	vm.r.toObject(vm.stack[vm.sp-2]).self.putStr(__proto__, vm.stack[vm.sp-1], true)
 
@@ -1080,7 +1080,7 @@ func (_setProto) exec(vm *vm) {
 }
 
 type setPropGetter string
-
+// setPropGetter指令执行
 func (s setPropGetter) exec(vm *vm) {
 	obj := vm.r.toObject(vm.stack[vm.sp-2])
 	val := vm.stack[vm.sp-1]
@@ -1098,7 +1098,7 @@ func (s setPropGetter) exec(vm *vm) {
 }
 
 type setPropSetter string
-
+// setPropSetter指令执行
 func (s setPropSetter) exec(vm *vm) {
 	obj := vm.r.toObject(vm.stack[vm.sp-2])
 	val := vm.stack[vm.sp-1]
@@ -1116,7 +1116,7 @@ func (s setPropSetter) exec(vm *vm) {
 }
 
 type getProp string
-
+// getProp指令执行
 func (g getProp) exec(vm *vm) {
 	v := vm.stack[vm.sp-1]
 	obj := v.baseObject(vm.r)
@@ -1137,7 +1137,7 @@ func (g getProp) exec(vm *vm) {
 }
 
 type getPropCallee string
-
+// getPropCallee指令执行
 func (g getPropCallee) exec(vm *vm) {
 	v := vm.stack[vm.sp-1]
 	obj := v.baseObject(vm.r)
@@ -1160,7 +1160,7 @@ func (g getPropCallee) exec(vm *vm) {
 type _getElem struct{}
 
 var getElem _getElem
-
+// getElem指令执行
 func (_getElem) exec(vm *vm) {
 	v := vm.stack[vm.sp-2]
 	obj := v.baseObject(vm.r)
@@ -1186,7 +1186,7 @@ func (_getElem) exec(vm *vm) {
 type _getElemCallee struct{}
 
 var getElemCallee _getElemCallee
-
+// getElemCallee指令执行
 func (_getElemCallee) exec(vm *vm) {
 	v := vm.stack[vm.sp-2]
 	obj := v.baseObject(vm.r)
@@ -1213,21 +1213,21 @@ func (_getElemCallee) exec(vm *vm) {
 type _dup struct{}
 
 var dup _dup
-
+// dup指令执行
 func (_dup) exec(vm *vm) {
 	vm.push(vm.stack[vm.sp-1])
 	vm.pc++
 }
 
 type dupN uint32
-
+// dupN指令执行
 func (d dupN) exec(vm *vm) {
 	vm.push(vm.stack[vm.sp-1-int(d)])
 	vm.pc++
 }
 
 type rdupN uint32
-
+// rdupN指令执行
 func (d rdupN) exec(vm *vm) {
 	vm.stack[vm.sp-1-int(d)] = vm.stack[vm.sp-1]
 	vm.pc++
@@ -1236,14 +1236,14 @@ func (d rdupN) exec(vm *vm) {
 type _newObject struct{}
 
 var newObject _newObject
-
+// newObject指令执行
 func (_newObject) exec(vm *vm) {
 	vm.push(vm.r.NewObject())
 	vm.pc++
 }
 
 type newArray uint32
-
+// newArray指令执行
 func (l newArray) exec(vm *vm) {
 	values := make([]Value, l)
 	if l > 0 {
@@ -1265,7 +1265,7 @@ type newRegexp struct {
 
 	global, ignoreCase, multiline bool
 }
-
+// newRegexp指令执行
 func (n *newRegexp) exec(vm *vm) {
 	vm.push(vm.r.newRegExpp(n.pattern, n.src, n.global, n.ignoreCase, n.multiline, vm.r.global.RegExpPrototype))
 	vm.pc++
@@ -1284,13 +1284,13 @@ func (vm *vm) setLocal(s int) {
 }
 
 type setLocal uint32
-
+// setLocal指令执行
 func (s setLocal) exec(vm *vm) {
 	vm.setLocal(int(s))
 }
 
 type setLocalP uint32
-
+// setLocalP指令执行
 func (s setLocalP) exec(vm *vm) {
 	vm.setLocal(int(s))
 	vm.sp--
@@ -1300,7 +1300,7 @@ type setVar struct {
 	name string
 	idx  uint32
 }
-
+// setVar指令执行
 func (s setVar) exec(vm *vm) {
 	v := vm.peek()
 
@@ -1326,7 +1326,7 @@ end:
 }
 
 type resolveVar1 string
-
+// resolveVar1指令执行
 func (s resolveVar1) exec(vm *vm) {
 	name := string(s)
 	var ref ref
@@ -1360,7 +1360,7 @@ end:
 }
 
 type deleteVar string
-
+// deleteVar指令执行
 func (d deleteVar) exec(vm *vm) {
 	name := string(d)
 	ret := true
@@ -1392,7 +1392,7 @@ end:
 }
 
 type deleteGlobal string
-
+// deleteGlobal指令执行
 func (d deleteGlobal) exec(vm *vm) {
 	name := string(d)
 	var ret bool
@@ -1410,7 +1410,7 @@ func (d deleteGlobal) exec(vm *vm) {
 }
 
 type resolveVar1Strict string
-
+// resolveVar1Strict指令执行
 func (s resolveVar1Strict) exec(vm *vm) {
 	name := string(s)
 	var ref ref
@@ -1454,7 +1454,7 @@ end:
 }
 
 type setGlobal string
-
+// setGlobal指令执行
 func (s setGlobal) exec(vm *vm) {
 	v := vm.peek()
 
@@ -1463,7 +1463,7 @@ func (s setGlobal) exec(vm *vm) {
 }
 
 type setGlobalStrict string
-
+// setGlobalStrict指令执行
 func (s setGlobalStrict) exec(vm *vm) {
 	v := vm.peek()
 
@@ -1478,7 +1478,7 @@ func (s setGlobalStrict) exec(vm *vm) {
 }
 
 type getLocal uint32
-
+// getLocal指令执行
 func (g getLocal) exec(vm *vm) {
 	level := int(g >> 24)
 	idx := uint32(g & 0x00FFFFFF)
@@ -1496,7 +1496,7 @@ type getVar struct {
 	idx  uint32
 	ref  bool
 }
-
+// getVar指令执行
 func (g getVar) exec(vm *vm) {
 	level := int(g.idx >> 24)
 	idx := uint32(g.idx & 0x00FFFFFF)
@@ -1531,7 +1531,7 @@ type resolveVar struct {
 	idx    uint32
 	strict bool
 }
-
+// resolveVar指令执行
 func (r resolveVar) exec(vm *vm) {
 	level := int(r.idx >> 24)
 	idx := uint32(r.idx & 0x00FFFFFF)
@@ -1586,7 +1586,7 @@ end:
 type _getValue struct{}
 
 var getValue _getValue
-
+// getValue指令执行
 func (_getValue) exec(vm *vm) {
 	ref := vm.refStack[len(vm.refStack)-1]
 	if v := ref.get(); v != nil {
@@ -1601,7 +1601,7 @@ func (_getValue) exec(vm *vm) {
 type _putValue struct{}
 
 var putValue _putValue
-
+// putValue指令执行
 func (_putValue) exec(vm *vm) {
 	l := len(vm.refStack) - 1
 	ref := vm.refStack[l]
@@ -1612,7 +1612,7 @@ func (_putValue) exec(vm *vm) {
 }
 
 type getVar1 string
-
+// getVar1指令执行
 func (n getVar1) exec(vm *vm) {
 	name := string(n)
 	var val Value
@@ -1633,7 +1633,7 @@ func (n getVar1) exec(vm *vm) {
 }
 
 type getVar1Callee string
-
+// getVar1Callee指令执行
 func (n getVar1Callee) exec(vm *vm) {
 	name := string(n)
 	var val Value
@@ -1656,7 +1656,7 @@ func (n getVar1Callee) exec(vm *vm) {
 type _pop struct{}
 
 var pop _pop
-
+// pop指令执行
 func (_pop) exec(vm *vm) {
 	vm.sp--
 	vm.pc++
@@ -1690,13 +1690,13 @@ func (vm *vm) callEval(n int, strict bool) {
 }
 
 type callEval uint32
-
+// callEval指令执行
 func (numargs callEval) exec(vm *vm) {
 	vm.callEval(int(numargs), false)
 }
 
 type callEvalStrict uint32
-
+// callEvalStrict指令执行
 func (numargs callEvalStrict) exec(vm *vm) {
 	vm.callEval(int(numargs), true)
 }
@@ -1704,7 +1704,7 @@ func (numargs callEvalStrict) exec(vm *vm) {
 type _boxThis struct{}
 
 var boxThis _boxThis
-
+// boxThis指令执行
 func (_boxThis) exec(vm *vm) {
 	v := vm.stack[vm.sb]
 	if v == _undefined || v == _null {
@@ -1716,7 +1716,7 @@ func (_boxThis) exec(vm *vm) {
 }
 
 type call uint32
-
+// call指令执行
 func (numargs call) exec(vm *vm) {
 	// this
 	// callee
@@ -1779,7 +1779,7 @@ func (vm *vm) clearStack() {
 }
 
 type enterFunc uint32
-
+// enterFunc指令执行
 func (e enterFunc) exec(vm *vm) {
 	// Input stack:
 	//
@@ -1817,7 +1817,7 @@ func (e enterFunc) exec(vm *vm) {
 type _ret struct{}
 
 var ret _ret
-
+// ret指令执行
 func (_ret) exec(vm *vm) {
 	// callee -3
 	// this -2
@@ -1835,7 +1835,7 @@ type enterFuncStashless struct {
 	stackSize uint32
 	args      uint32
 }
-
+// enterFuncStashless指令执行
 func (e enterFuncStashless) exec(vm *vm) {
 	vm.sb = vm.sp - vm.args - 1
 	var ss int
@@ -1861,7 +1861,7 @@ func (e enterFuncStashless) exec(vm *vm) {
 type _retStashless struct{}
 
 var retStashless _retStashless
-
+// retStashless指令执行
 func (_retStashless) exec(vm *vm) {
 	retval := vm.stack[vm.sp-1]
 	vm.sp = vm.sb
@@ -1880,7 +1880,7 @@ type newFunc struct {
 
 	srcStart, srcEnd uint32
 }
-
+// newFunc指令执行
 func (n *newFunc) exec(vm *vm) {
 	obj := vm.r.newFunc(n.name, int(n.length), n.strict)
 	obj.prg = n.prg
@@ -1891,7 +1891,7 @@ func (n *newFunc) exec(vm *vm) {
 }
 
 type bindName string
-
+// bindName指令执行
 func (d bindName) exec(vm *vm) {
 	if vm.stash != nil {
 		vm.stash.createBinding(string(d))
@@ -1902,7 +1902,7 @@ func (d bindName) exec(vm *vm) {
 }
 
 type jne int32
-
+// jne指令执行
 func (j jne) exec(vm *vm) {
 	vm.sp--
 	if !vm.stack[vm.sp].ToBoolean() {
@@ -1913,7 +1913,7 @@ func (j jne) exec(vm *vm) {
 }
 
 type jeq int32
-
+// jeq指令执行
 func (j jeq) exec(vm *vm) {
 	vm.sp--
 	if vm.stack[vm.sp].ToBoolean() {
@@ -1924,7 +1924,7 @@ func (j jeq) exec(vm *vm) {
 }
 
 type jeq1 int32
-
+// jeq1指令执行
 func (j jeq1) exec(vm *vm) {
 	if vm.stack[vm.sp-1].ToBoolean() {
 		vm.pc += int(j)
@@ -1934,7 +1934,7 @@ func (j jeq1) exec(vm *vm) {
 }
 
 type jneq1 int32
-
+// jneq1指令执行
 func (j jneq1) exec(vm *vm) {
 	if !vm.stack[vm.sp-1].ToBoolean() {
 		vm.pc += int(j)
@@ -1946,7 +1946,7 @@ func (j jneq1) exec(vm *vm) {
 type _not struct{}
 
 var not _not
-
+// not指令执行
 func (_not) exec(vm *vm) {
 	if vm.stack[vm.sp-1].ToBoolean() {
 		vm.stack[vm.sp-1] = valueFalse
@@ -2001,7 +2001,7 @@ end:
 type _op_lt struct{}
 
 var op_lt _op_lt
-
+// op_lt指令执行
 func (_op_lt) exec(vm *vm) {
 	left := toPrimitiveNumber(vm.stack[vm.sp-2])
 	right := toPrimitiveNumber(vm.stack[vm.sp-1])
@@ -2019,7 +2019,7 @@ func (_op_lt) exec(vm *vm) {
 type _op_lte struct{}
 
 var op_lte _op_lte
-
+// op_lte指令执行
 func (_op_lte) exec(vm *vm) {
 	left := toPrimitiveNumber(vm.stack[vm.sp-2])
 	right := toPrimitiveNumber(vm.stack[vm.sp-1])
@@ -2038,7 +2038,7 @@ func (_op_lte) exec(vm *vm) {
 type _op_gt struct{}
 
 var op_gt _op_gt
-
+// op_gt指令执行
 func (_op_gt) exec(vm *vm) {
 	left := toPrimitiveNumber(vm.stack[vm.sp-2])
 	right := toPrimitiveNumber(vm.stack[vm.sp-1])
@@ -2056,7 +2056,7 @@ func (_op_gt) exec(vm *vm) {
 type _op_gte struct{}
 
 var op_gte _op_gte
-
+// op_gte指令执行
 func (_op_gte) exec(vm *vm) {
 	left := toPrimitiveNumber(vm.stack[vm.sp-2])
 	right := toPrimitiveNumber(vm.stack[vm.sp-1])
@@ -2075,7 +2075,7 @@ func (_op_gte) exec(vm *vm) {
 type _op_eq struct{}
 
 var op_eq _op_eq
-
+// op_eq指令执行
 func (_op_eq) exec(vm *vm) {
 	if vm.stack[vm.sp-2].Equals(vm.stack[vm.sp-1]) {
 		vm.stack[vm.sp-2] = valueTrue
@@ -2089,7 +2089,7 @@ func (_op_eq) exec(vm *vm) {
 type _op_neq struct{}
 
 var op_neq _op_neq
-
+// op_neq指令执行
 func (_op_neq) exec(vm *vm) {
 	if vm.stack[vm.sp-2].Equals(vm.stack[vm.sp-1]) {
 		vm.stack[vm.sp-2] = valueFalse
@@ -2103,7 +2103,7 @@ func (_op_neq) exec(vm *vm) {
 type _op_strict_eq struct{}
 
 var op_strict_eq _op_strict_eq
-
+// op_strict_eq指令执行
 func (_op_strict_eq) exec(vm *vm) {
 	if vm.stack[vm.sp-2].StrictEquals(vm.stack[vm.sp-1]) {
 		vm.stack[vm.sp-2] = valueTrue
@@ -2117,7 +2117,7 @@ func (_op_strict_eq) exec(vm *vm) {
 type _op_strict_neq struct{}
 
 var op_strict_neq _op_strict_neq
-
+//op_strict_neq指令执行
 func (_op_strict_neq) exec(vm *vm) {
 	if vm.stack[vm.sp-2].StrictEquals(vm.stack[vm.sp-1]) {
 		vm.stack[vm.sp-2] = valueFalse
@@ -2131,7 +2131,7 @@ func (_op_strict_neq) exec(vm *vm) {
 type _op_instanceof struct{}
 
 var op_instanceof _op_instanceof
-
+// op_instanceof指令执行
 func (_op_instanceof) exec(vm *vm) {
 	left := vm.stack[vm.sp-2]
 	right := vm.r.toObject(vm.stack[vm.sp-1])
@@ -2149,7 +2149,7 @@ func (_op_instanceof) exec(vm *vm) {
 type _op_in struct{}
 
 var op_in _op_in
-
+// op_in指令执行
 func (_op_in) exec(vm *vm) {
 	left := vm.stack[vm.sp-2]
 	right := vm.r.toObject(vm.stack[vm.sp-1])
@@ -2169,7 +2169,7 @@ type try struct {
 	finallyOffset int32
 	dynamic       bool
 }
-
+// try指令执行
 func (t try) exec(vm *vm) {
 	o := vm.pc
 	vm.pc++
@@ -2213,13 +2213,13 @@ func (t try) exec(vm *vm) {
 type _retFinally struct{}
 
 var retFinally _retFinally
-
+// retFinally指令执行
 func (_retFinally) exec(vm *vm) {
 	vm.pc++
 }
 
 type enterCatch string
-
+// enterCatch指令执行
 func (varName enterCatch) exec(vm *vm) {
 	vm.stash.names = map[string]uint32{
 		string(varName): 0,
@@ -2230,13 +2230,13 @@ func (varName enterCatch) exec(vm *vm) {
 type _throw struct{}
 
 var throw _throw
-
+// throw指令执行
 func (_throw) exec(vm *vm) {
 	panic(vm.stack[vm.sp-1])
 }
 
 type _new uint32
-
+// _new指令执行
 func (n _new) exec(vm *vm) {
 	obj := vm.r.toObject(vm.stack[vm.sp-1-int(n)])
 repeat:
@@ -2274,7 +2274,7 @@ func (vm *vm) _nativeNew(f *nativeFuncObject, n int) {
 type _typeof struct{}
 
 var typeof _typeof
-
+// typeof指令执行
 func (_typeof) exec(vm *vm) {
 	var r Value
 	switch v := vm.stack[vm.sp-1].(type) {
@@ -2307,7 +2307,7 @@ func (_typeof) exec(vm *vm) {
 }
 
 type createArgs uint32
-
+// createArgs指令执行
 func (formalArgs createArgs) exec(vm *vm) {
 	v := &Object{runtime: vm.r}
 	args := &argumentsObject{}
@@ -2345,7 +2345,7 @@ func (formalArgs createArgs) exec(vm *vm) {
 }
 
 type createArgsStrict uint32
-
+// createArgsStrict指令执行
 func (formalArgs createArgsStrict) exec(vm *vm) {
 	args := vm.r.newBaseObject(vm.r.global.ObjectPrototype, "Arguments")
 	i := 0
@@ -2373,7 +2373,7 @@ func (formalArgs createArgsStrict) exec(vm *vm) {
 type _enterWith struct{}
 
 var enterWith _enterWith
-
+// enterWith指令执行
 func (_enterWith) exec(vm *vm) {
 	vm.newStash()
 	vm.stash.obj = vm.stack[vm.sp-1].ToObject(vm.r).self
@@ -2384,7 +2384,7 @@ func (_enterWith) exec(vm *vm) {
 type _leaveWith struct{}
 
 var leaveWith _leaveWith
-
+// leaveWith指令执行
 func (_leaveWith) exec(vm *vm) {
 	vm.stash = vm.stash.outer
 	vm.pc++
@@ -2397,7 +2397,7 @@ func emptyIter() (propIterItem, iterNextFunc) {
 type _enumerate struct{}
 
 var enumerate _enumerate
-
+// enumerate指令执行
 func (_enumerate) exec(vm *vm) {
 	v := vm.stack[vm.sp-1]
 	if v == _undefined || v == _null {
@@ -2410,7 +2410,7 @@ func (_enumerate) exec(vm *vm) {
 }
 
 type enumNext int32
-
+// enumNext指令执行
 func (jmp enumNext) exec(vm *vm) {
 	l := len(vm.iterStack) - 1
 	item, n := vm.iterStack[l].f()
@@ -2426,7 +2426,7 @@ func (jmp enumNext) exec(vm *vm) {
 type _enumGet struct{}
 
 var enumGet _enumGet
-
+// enumGet指令执行
 func (_enumGet) exec(vm *vm) {
 	l := len(vm.iterStack) - 1
 	vm.push(vm.iterStack[l].val)
@@ -2436,7 +2436,7 @@ func (_enumGet) exec(vm *vm) {
 type _enumPop struct{}
 
 var enumPop _enumPop
-
+// enumPop指令执行
 func (_enumPop) exec(vm *vm) {
 	l := len(vm.iterStack) - 1
 	vm.iterStack[l] = iterStackItem{}

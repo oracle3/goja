@@ -28,7 +28,7 @@ const (
 
 	digits = "0123456789abcdefghijklmnopqrstuvwxyz"
 )
-
+// 求x二进制情况下低位4个字节0的位置
 func lo0bits(x uint32) (k uint32) {
 
 	if (x & 7) != 0 {
@@ -65,7 +65,7 @@ func lo0bits(x uint32) (k uint32) {
 	}
 	return
 }
-
+// 求x二进制情况下高位4个字节0的位置
 func hi0bits(x uint32) (k uint32) {
 
 	if (x & 0xffff0000) == 0 {
@@ -92,7 +92,7 @@ func hi0bits(x uint32) (k uint32) {
 	}
 	return
 }
-
+// int转4字节byte
 func stuffBits(bits []byte, offset int, val uint32) {
 	bits[offset] = byte(val >> 24)
 	bits[offset+1] = byte(val >> 16)

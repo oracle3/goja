@@ -9,18 +9,19 @@ import (
 const (
 	maxTime = 8.64e15
 )
-
+// 纳秒转换为时间
 func timeFromMsec(msec int64) time.Time {
 	sec := msec / 1000
 	nsec := (msec % 1000) * 1e6
 	return time.Unix(sec, nsec)
 }
-
+// 转换为纳秒
 func timeToMsec(t time.Time) int64 {
 	return t.Unix()*1000 + int64(t.Nanosecond())/1e6
 }
-
+// 根据输入的参数构造时间
 func (r *Runtime) makeDate(args []Value, loc *time.Location) (t time.Time, valid bool) {
+	// 指定位置的参数转换为整数
 	pick := func(index int, default_ int64) (int64, bool) {
 		if index >= len(args) {
 			return default_, true
@@ -101,20 +102,20 @@ func (r *Runtime) makeDate(args []Value, loc *time.Location) (t time.Time, valid
 	}
 	return
 }
-
+// 根据参数构造时间的object
 func (r *Runtime) newDateTime(args []Value, loc *time.Location) *Object {
 	t, isSet := r.makeDate(args, loc)
 	return r.newDateObject(t, isSet)
 }
-
+// 根据参数构造时间的object
 func (r *Runtime) builtin_newDate(args []Value) *Object {
 	return r.newDateTime(args, time.Local)
 }
-
+// 时间转换为字符串
 func (r *Runtime) builtin_date(call FunctionCall) Value {
 	return asciiString(dateFormat(r.now()))
 }
-
+// 解析时间为纳秒
 func (r *Runtime) date_parse(call FunctionCall) Value {
 	t, set := dateParse(call.Argument(0).String())
 	if set {
@@ -122,7 +123,7 @@ func (r *Runtime) date_parse(call FunctionCall) Value {
 	}
 	return _NaN
 }
-
+// 时间转换为纳秒
 func (r *Runtime) date_UTC(call FunctionCall) Value {
 	t, valid := r.makeDate(call.Arguments, time.UTC)
 	if !valid {
@@ -130,11 +131,11 @@ func (r *Runtime) date_UTC(call FunctionCall) Value {
 	}
 	return intToValue(timeToMsec(t))
 }
-
+// 解析当前时间为纳秒
 func (r *Runtime) date_now(call FunctionCall) Value {
 	return intToValue(timeToMsec(r.now()))
 }
-
+// 方法Date.prototype.toString调用实现
 func (r *Runtime) dateproto_toString(call FunctionCall) Value {
 	obj := r.toObject(call.This)
 	if d, ok := obj.self.(*dateObject); ok {
@@ -147,7 +148,7 @@ func (r *Runtime) dateproto_toString(call FunctionCall) Value {
 	r.typeErrorResult(true, "Method Date.prototype.toString is called on incompatible receiver")
 	panic("Unreachable")
 }
-
+// 方法Date.prototype.toutString调用实现
 func (r *Runtime) dateproto_toUTCString(call FunctionCall) Value {
 	obj := r.toObject(call.This)
 	if d, ok := obj.self.(*dateObject); ok {
@@ -160,7 +161,7 @@ func (r *Runtime) dateproto_toUTCString(call FunctionCall) Value {
 	r.typeErrorResult(true, "Method Date.prototype.toUTCString is called on incompatible receiver")
 	panic("Unreachable")
 }
-
+// 方法Date.prototype.toISOString调用实现
 func (r *Runtime) dateproto_toISOString(call FunctionCall) Value {
 	obj := r.toObject(call.This)
 	if d, ok := obj.self.(*dateObject); ok {
@@ -202,7 +203,7 @@ func (r *Runtime) dateproto_toJSON(call FunctionCall) Value {
 	r.typeErrorResult(true, "toISOString is not a function")
 	panic("Unreachable")
 }
-
+// 方法Date.prototype.toDateString调用实现
 func (r *Runtime) dateproto_toDateString(call FunctionCall) Value {
 	obj := r.toObject(call.This)
 	if d, ok := obj.self.(*dateObject); ok {
@@ -215,7 +216,7 @@ func (r *Runtime) dateproto_toDateString(call FunctionCall) Value {
 	r.typeErrorResult(true, "Method Date.prototype.toDateString is called on incompatible receiver")
 	panic("Unreachable")
 }
-
+// 方法Date.prototype.toTimeString调用实现
 func (r *Runtime) dateproto_toTimeString(call FunctionCall) Value {
 	obj := r.toObject(call.This)
 	if d, ok := obj.self.(*dateObject); ok {
@@ -228,7 +229,7 @@ func (r *Runtime) dateproto_toTimeString(call FunctionCall) Value {
 	r.typeErrorResult(true, "Method Date.prototype.toTimeString is called on incompatible receiver")
 	panic("Unreachable")
 }
-
+// 方法Date.prototype.toLocaleString调用实现
 func (r *Runtime) dateproto_toLocaleString(call FunctionCall) Value {
 	obj := r.toObject(call.This)
 	if d, ok := obj.self.(*dateObject); ok {
@@ -241,7 +242,7 @@ func (r *Runtime) dateproto_toLocaleString(call FunctionCall) Value {
 	r.typeErrorResult(true, "Method Date.prototype.toLocaleString is called on incompatible receiver")
 	panic("Unreachable")
 }
-
+// 方法Date.prototype.toLocaleDateString调用实现
 func (r *Runtime) dateproto_toLocaleDateString(call FunctionCall) Value {
 	obj := r.toObject(call.This)
 	if d, ok := obj.self.(*dateObject); ok {
@@ -254,7 +255,7 @@ func (r *Runtime) dateproto_toLocaleDateString(call FunctionCall) Value {
 	r.typeErrorResult(true, "Method Date.prototype.toLocaleDateString is called on incompatible receiver")
 	panic("Unreachable")
 }
-
+// 方法Date.prototype.toLocaleTimeString调用实现
 func (r *Runtime) dateproto_toLocaleTimeString(call FunctionCall) Value {
 	obj := r.toObject(call.This)
 	if d, ok := obj.self.(*dateObject); ok {
@@ -267,7 +268,7 @@ func (r *Runtime) dateproto_toLocaleTimeString(call FunctionCall) Value {
 	r.typeErrorResult(true, "Method Date.prototype.toLocaleTimeString is called on incompatible receiver")
 	panic("Unreachable")
 }
-
+// 方法Date.prototype.valueOf调用实现
 func (r *Runtime) dateproto_valueOf(call FunctionCall) Value {
 	obj := r.toObject(call.This)
 	if d, ok := obj.self.(*dateObject); ok {
@@ -280,7 +281,7 @@ func (r *Runtime) dateproto_valueOf(call FunctionCall) Value {
 	r.typeErrorResult(true, "Method Date.prototype.valueOf is called on incompatible receiver")
 	return nil
 }
-
+// 方法Date.prototype.getTime调用实现
 func (r *Runtime) dateproto_getTime(call FunctionCall) Value {
 	obj := r.toObject(call.This)
 	if d, ok := obj.self.(*dateObject); ok {
@@ -293,7 +294,7 @@ func (r *Runtime) dateproto_getTime(call FunctionCall) Value {
 	r.typeErrorResult(true, "Method Date.prototype.getTime is called on incompatible receiver")
 	return nil
 }
-
+// 方法Date.prototype.getFullYear调用实现
 func (r *Runtime) dateproto_getFullYear(call FunctionCall) Value {
 	obj := r.toObject(call.This)
 	if d, ok := obj.self.(*dateObject); ok {
@@ -306,7 +307,7 @@ func (r *Runtime) dateproto_getFullYear(call FunctionCall) Value {
 	r.typeErrorResult(true, "Method Date.prototype.getFullYear is called on incompatible receiver")
 	return nil
 }
-
+// 方法Date.prototype.getUTCFullYear调用实现
 func (r *Runtime) dateproto_getUTCFullYear(call FunctionCall) Value {
 	obj := r.toObject(call.This)
 	if d, ok := obj.self.(*dateObject); ok {
@@ -319,7 +320,7 @@ func (r *Runtime) dateproto_getUTCFullYear(call FunctionCall) Value {
 	r.typeErrorResult(true, "Method Date.prototype.getUTCFullYear is called on incompatible receiver")
 	return nil
 }
-
+// 方法Date.prototype.getMonth调用实现
 func (r *Runtime) dateproto_getMonth(call FunctionCall) Value {
 	obj := r.toObject(call.This)
 	if d, ok := obj.self.(*dateObject); ok {
@@ -332,7 +333,7 @@ func (r *Runtime) dateproto_getMonth(call FunctionCall) Value {
 	r.typeErrorResult(true, "Method Date.prototype.getMonth is called on incompatible receiver")
 	return nil
 }
-
+// 方法Date.prototype.getUTCMonth调用实现
 func (r *Runtime) dateproto_getUTCMonth(call FunctionCall) Value {
 	obj := r.toObject(call.This)
 	if d, ok := obj.self.(*dateObject); ok {
@@ -345,7 +346,7 @@ func (r *Runtime) dateproto_getUTCMonth(call FunctionCall) Value {
 	r.typeErrorResult(true, "Method Date.prototype.getUTCMonth is called on incompatible receiver")
 	return nil
 }
-
+// 方法Date.prototype.getHours调用实现
 func (r *Runtime) dateproto_getHours(call FunctionCall) Value {
 	obj := r.toObject(call.This)
 	if d, ok := obj.self.(*dateObject); ok {
@@ -358,7 +359,7 @@ func (r *Runtime) dateproto_getHours(call FunctionCall) Value {
 	r.typeErrorResult(true, "Method Date.prototype.getHours is called on incompatible receiver")
 	return nil
 }
-
+// 方法Date.prototype.getUTCHours调用实现
 func (r *Runtime) dateproto_getUTCHours(call FunctionCall) Value {
 	obj := r.toObject(call.This)
 	if d, ok := obj.self.(*dateObject); ok {
@@ -371,7 +372,7 @@ func (r *Runtime) dateproto_getUTCHours(call FunctionCall) Value {
 	r.typeErrorResult(true, "Method Date.prototype.getUTCHours is called on incompatible receiver")
 	return nil
 }
-
+// 方法Date.prototype.getDate调用实现
 func (r *Runtime) dateproto_getDate(call FunctionCall) Value {
 	obj := r.toObject(call.This)
 	if d, ok := obj.self.(*dateObject); ok {
@@ -384,7 +385,7 @@ func (r *Runtime) dateproto_getDate(call FunctionCall) Value {
 	r.typeErrorResult(true, "Method Date.prototype.getDate is called on incompatible receiver")
 	return nil
 }
-
+// 方法Date.prototype.getUTCDate调用实现
 func (r *Runtime) dateproto_getUTCDate(call FunctionCall) Value {
 	obj := r.toObject(call.This)
 	if d, ok := obj.self.(*dateObject); ok {
@@ -397,7 +398,7 @@ func (r *Runtime) dateproto_getUTCDate(call FunctionCall) Value {
 	r.typeErrorResult(true, "Method Date.prototype.getUTCDate is called on incompatible receiver")
 	return nil
 }
-
+// 方法Date.prototype.getDay调用实现
 func (r *Runtime) dateproto_getDay(call FunctionCall) Value {
 	obj := r.toObject(call.This)
 	if d, ok := obj.self.(*dateObject); ok {
@@ -410,7 +411,7 @@ func (r *Runtime) dateproto_getDay(call FunctionCall) Value {
 	r.typeErrorResult(true, "Method Date.prototype.getDay is called on incompatible receiver")
 	return nil
 }
-
+// 方法Date.prototype.getUTCDay调用实现
 func (r *Runtime) dateproto_getUTCDay(call FunctionCall) Value {
 	obj := r.toObject(call.This)
 	if d, ok := obj.self.(*dateObject); ok {
@@ -423,7 +424,7 @@ func (r *Runtime) dateproto_getUTCDay(call FunctionCall) Value {
 	r.typeErrorResult(true, "Method Date.prototype.getUTCDay is called on incompatible receiver")
 	return nil
 }
-
+// 方法Date.prototype.getMinutes调用实现
 func (r *Runtime) dateproto_getMinutes(call FunctionCall) Value {
 	obj := r.toObject(call.This)
 	if d, ok := obj.self.(*dateObject); ok {
@@ -436,7 +437,7 @@ func (r *Runtime) dateproto_getMinutes(call FunctionCall) Value {
 	r.typeErrorResult(true, "Method Date.prototype.getMinutes is called on incompatible receiver")
 	return nil
 }
-
+// 方法Date.prototype.getUTCMinutes调用实现
 func (r *Runtime) dateproto_getUTCMinutes(call FunctionCall) Value {
 	obj := r.toObject(call.This)
 	if d, ok := obj.self.(*dateObject); ok {
@@ -449,7 +450,7 @@ func (r *Runtime) dateproto_getUTCMinutes(call FunctionCall) Value {
 	r.typeErrorResult(true, "Method Date.prototype.getUTCMinutes is called on incompatible receiver")
 	return nil
 }
-
+// 方法Date.prototype.getSeconds调用实现
 func (r *Runtime) dateproto_getSeconds(call FunctionCall) Value {
 	obj := r.toObject(call.This)
 	if d, ok := obj.self.(*dateObject); ok {
@@ -462,7 +463,7 @@ func (r *Runtime) dateproto_getSeconds(call FunctionCall) Value {
 	r.typeErrorResult(true, "Method Date.prototype.getSeconds is called on incompatible receiver")
 	return nil
 }
-
+// 方法Date.prototype.getUTCSeconds实现
 func (r *Runtime) dateproto_getUTCSeconds(call FunctionCall) Value {
 	obj := r.toObject(call.This)
 	if d, ok := obj.self.(*dateObject); ok {
@@ -475,7 +476,7 @@ func (r *Runtime) dateproto_getUTCSeconds(call FunctionCall) Value {
 	r.typeErrorResult(true, "Method Date.prototype.getUTCSeconds is called on incompatible receiver")
 	return nil
 }
-
+// 方法Date.prototype.getMilliseconds调用实现
 func (r *Runtime) dateproto_getMilliseconds(call FunctionCall) Value {
 	obj := r.toObject(call.This)
 	if d, ok := obj.self.(*dateObject); ok {
@@ -488,7 +489,7 @@ func (r *Runtime) dateproto_getMilliseconds(call FunctionCall) Value {
 	r.typeErrorResult(true, "Method Date.prototype.getMilliseconds is called on incompatible receiver")
 	return nil
 }
-
+// Date.prototype.getUTCMilliseconds实现
 func (r *Runtime) dateproto_getUTCMilliseconds(call FunctionCall) Value {
 	obj := r.toObject(call.This)
 	if d, ok := obj.self.(*dateObject); ok {
@@ -501,7 +502,7 @@ func (r *Runtime) dateproto_getUTCMilliseconds(call FunctionCall) Value {
 	r.typeErrorResult(true, "Method Date.prototype.getUTCMilliseconds is called on incompatible receiver")
 	return nil
 }
-
+// Date.prototype.getTimezoneOffset实现
 func (r *Runtime) dateproto_getTimezoneOffset(call FunctionCall) Value {
 	obj := r.toObject(call.This)
 	if d, ok := obj.self.(*dateObject); ok {
@@ -515,7 +516,7 @@ func (r *Runtime) dateproto_getTimezoneOffset(call FunctionCall) Value {
 	r.typeErrorResult(true, "Method Date.prototype.getTimezoneOffset is called on incompatible receiver")
 	return nil
 }
-
+// Date.prototype.setTime实现
 func (r *Runtime) dateproto_setTime(call FunctionCall) Value {
 	obj := r.toObject(call.This)
 	if d, ok := obj.self.(*dateObject); ok {
