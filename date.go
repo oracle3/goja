@@ -82,6 +82,7 @@ func (r *Runtime) newDateObject(t time.Time, isSet bool) *Object {
 	return v
 }
 
+// 标准日期格式输出
 func dateFormat(t time.Time) string {
 	return t.Local().Format(dateTimeLayout)
 }

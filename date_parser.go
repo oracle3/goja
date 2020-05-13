@@ -65,6 +65,7 @@ const (
 
 var errBad = errors.New("bad value for field") // placeholder not passed to user
 
+// 日期格式解析
 func parseDate(layout, value string, defaultLocation *time.Location) (time.Time, error) {
 	alayout, avalue := layout, value
 	rangeErrString := "" // set if a value is out of range
@@ -407,6 +408,7 @@ func signedLeadingInt(s string) (x int64, rem string, err error) {
 }
 
 // leadingInt consumes the leading [0-9]* from s.
+// 解析字符串，前面的int和字符串分离
 func leadingInt(s string) (x int64, rem string, err error) {
 	i := 0
 	for ; i < len(s); i++ {
@@ -429,6 +431,7 @@ func leadingInt(s string) (x int64, rem string, err error) {
 
 // nextStdChunk finds the first occurrence of a std string in
 // layout and returns the text before, the std string, and the text after.
+// nextStdChunk在布局中查找std字符串的第一个匹配项，并返回之前的文本、std字符串和之后的文本。
 func nextStdChunk(layout string) (prefix string, std int, suffix string) {
 	for i := 0; i < len(layout); i++ {
 		switch c := int(layout[i]); c {
@@ -613,6 +616,7 @@ var longMonthNames = []string{
 }
 
 // isDigit reports whether s[i] is in range and is a decimal digit.
+// isDigit 报告s[i]是否在范围内并且是十进制数字。
 func isDigit(s string, i int) bool {
 	if len(s) <= i {
 		return false
@@ -624,6 +628,7 @@ func isDigit(s string, i int) bool {
 // getnum parses s[0:1] or s[0:2] (fixed forces the latter)
 // as a decimal integer and returns the integer and the
 // remainder of the string.
+//getnum将s[0:1]或s[0:2]解析为十进制整数（fixed强制后者），并返回整数和字符串的其余部分。
 func getnum(s string, fixed bool) (int, string, error) {
 	if !isDigit(s, 0) {
 		return 0, s, errBad
@@ -637,6 +642,7 @@ func getnum(s string, fixed bool) (int, string, error) {
 	return int(s[0]-'0')*10 + int(s[1]-'0'), s[2:], nil
 }
 
+// 去除字符串前面的空格
 func cutspace(s string) string {
 	for len(s) > 0 && s[0] == ' ' {
 		s = s[1:]
@@ -646,6 +652,8 @@ func cutspace(s string) string {
 
 // skip removes the given prefix from value,
 // treating runs of space characters as equivalent.
+//skip从值中删除给定的前缀，
+//将空格字符的行会先清除空格。
 func skip(value, prefix string) (string, error) {
 	for len(prefix) > 0 {
 		if prefix[0] == ' ' {
@@ -669,6 +677,7 @@ func skip(value, prefix string) (string, error) {
 var atoiError = errors.New("time: invalid number")
 
 // Duplicates functionality in strconv, but avoids dependency.
+//重复strconv中的功能，但避免依赖。
 func atoi(s string) (x int, err error) {
 	q, rem, err := signedLeadingInt(s)
 	x = int(q)
@@ -680,6 +689,8 @@ func atoi(s string) (x int, err error) {
 
 // match reports whether s1 and s2 match ignoring case.
 // It is assumed s1 and s2 are the same length.
+//match报告s1和s2是否匹配忽略大小写。
+//假设s1和s2的长度相同。
 func match(s1, s2 string) bool {
 	for i := 0; i < len(s1); i++ {
 		c1 := s1[i]
@@ -695,7 +706,7 @@ func match(s1, s2 string) bool {
 	}
 	return true
 }
-
+// 字符串数组匹配，匹配一个就返回
 func lookup(tab []string, val string) (int, string, error) {
 	for i, v := range tab {
 		if len(val) >= len(v) && match(val[0:len(v)], v) {
@@ -723,11 +734,11 @@ var daysBefore = [...]int32{
 	31 + 28 + 31 + 30 + 31 + 30 + 31 + 31 + 30 + 31 + 30,
 	31 + 28 + 31 + 30 + 31 + 30 + 31 + 31 + 30 + 31 + 30 + 31,
 }
-
+// 是否闰年
 func isLeap(year int) bool {
 	return year%4 == 0 && (year%100 != 0 || year%400 == 0)
 }
-
+// 判断指定年份和月份下一个月有多少天
 func daysIn(m time.Month, year int) int {
 	if m == time.February && isLeap(year) {
 		return 29
@@ -745,6 +756,13 @@ func daysIn(m time.Month, year int) int {
 // If there are 3, it's a time zone.
 // Otherwise, other than special cases, it's not a time zone.
 // GMT is special because it can have an hour offset.
+//parseTimeZone解析时区字符串并返回其长度。时区是人类创造的，不可预测。我们不能做精确的错误检查。
+//另一方面，为了正确的解析，字符串的开头必须有一个时区，所以几乎总是有时区的。我们在字符串的开头查找一系列大写字母。
+//如果超过5个，那就是一个错误。
+//如果有4或5个，最后一个是T，那就是时区。
+//如果有3个，那就是时区。
+//否则，除了特殊情况，这里不是时区。
+//GMT是特殊的，因为它可以有一个小时的偏移量。
 func parseTimeZone(value string) (length int, ok bool) {
 	if len(value) < 3 {
 		return 0, false
@@ -794,6 +812,8 @@ func parseTimeZone(value string) (length int, ok bool) {
 // parseGMT parses a GMT time zone. The input string is known to start "GMT".
 // The function checks whether that is followed by a sign and a number in the
 // range -14 through 12 excluding zero.
+//parseGMT分析GMT时区。已知输入字符串以“GMT”开头。
+//该函数检查后面是否跟一个符号和一个介于-14到12之间的数字（不包括零）。
 func parseGMT(value string) int {
 	value = value[3:]
 	if len(value) == 0 {
@@ -806,6 +826,9 @@ func parseGMT(value string) int {
 // parseSignedOffset parses a signed timezone offset (e.g. "+03" or "-04").
 // The function checks for a signed number in the range -14 through +12 excluding zero.
 // Returns length of the found offset string or 0 otherwise
+//parseSignedOffset分析有符号时区偏移量(例如.“+03”或“-04”）。
+//函数检查-14到+12范围内（不包括零）的有符号数字。
+//返回找到的偏移字符串的长度，否则返回0
 func parseSignedOffset(value string) int {
 	sign := value[0]
 	if sign != '-' && sign != '+' {
@@ -839,6 +862,7 @@ func parseNanoseconds(value string, nbytes int) (ns int, rangeErrString string, 
 	// We need nanoseconds, which means scaling by the number
 	// of missing digits in the format, maximum length 10. If it's
 	// longer than 10, we won't scale.
+	// 我们需要纳秒，这意味着按格式中丢失的位数进行缩放，最大长度为10。如果它超过10，我们就不会缩放。
 	scaleDigits := 10 - nbytes
 	for i := 0; i < scaleDigits; i++ {
 		ns *= 10
