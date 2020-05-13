@@ -14,6 +14,9 @@ type Token int
 // "+"). For all other tokens the string corresponds to the token
 // name (e.g. for the token IDENTIFIER, the string is "IDENTIFIER").
 //
+//String返回与标记对应的字符串。
+//对于运算符、分隔符和关键字，字符串是实际的标记字符串（例如，对于标记PLUS，string（）是“+”）。
+//对于所有其他标记，字符串对应于标记名称（例如，对于标记IDENTIFIER，字符串是“IDENTIFIER”）。
 func (tkn Token) String() string {
 	if tkn == 0 {
 		return "UNKNOWN"
@@ -25,6 +28,7 @@ func (tkn Token) String() string {
 }
 
 // This is not used for anything
+// 未使用的函数
 func (tkn Token) precedence(in bool) int {
 
 	switch tkn {
@@ -74,8 +78,8 @@ func (tkn Token) precedence(in bool) int {
 
 type _keyword struct {
 	token         Token
-	futureKeyword bool
-	strict        bool
+	futureKeyword bool // 将来是否是关键字
+	strict        bool // 在严格模式下是否是关键字
 }
 
 // IsKeyword returns the keyword token if literal is a keyword, a KEYWORD token
@@ -105,6 +109,10 @@ type _keyword struct {
 //       public
 //       static
 //
+//IsKeyword返回关键字标记，如果literal是关键字，则返回关键字标记
+//如果是将来的关键字（const，let，class，super，…），或者如果文本不是关键字，则为0。
+//如果是关键字，则返回的第二个值指示literal仅在严格模式下被视为未来关键字。
+
 func IsKeyword(literal string) (Token, bool) {
 	if keyword, exists := keywordTable[literal]; exists {
 		if keyword.futureKeyword {

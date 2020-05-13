@@ -1,5 +1,5 @@
 package token
-
+// 标记枚举
 const (
 	_ Token = iota
 
@@ -110,7 +110,7 @@ const (
 	INSTANCEOF
 	lastKeyword
 )
-
+// 标记枚举对应单词
 var token2string = [...]string{
 	ILLEGAL:                     "ILLEGAL",
 	EOF:                         "EOF",
