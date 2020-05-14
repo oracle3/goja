@@ -21,11 +21,11 @@ type _chr struct {
 }
 
 var matchIdentifier = regexp.MustCompile(`^[$_\p{L}][$_\p{L}\d}]*$`)
-
+// 是否是数字
 func isDecimalDigit(chr rune) bool {
 	return '0' <= chr && chr <= '9'
 }
-
+// 字符转数字
 func digitValue(chr rune) int {
 	switch {
 	case '0' <= chr && chr <= '9':
@@ -37,24 +37,24 @@ func digitValue(chr rune) int {
 	}
 	return 16 // Larger than any legal digit value
 }
-
+// 判断是否是数字
 func isDigit(chr rune, base int) bool {
 	return digitValue(chr) < base
 }
-
+// 是否是标识符起始
 func isIdentifierStart(chr rune) bool {
 	return chr == '$' || chr == '_' || chr == '\\' ||
 		'a' <= chr && chr <= 'z' || 'A' <= chr && chr <= 'Z' ||
 		chr >= utf8.RuneSelf && unicode.IsLetter(chr)
 }
-
+// 是否是标识符部分
 func isIdentifierPart(chr rune) bool {
 	return chr == '$' || chr == '_' || chr == '\\' ||
 		'a' <= chr && chr <= 'z' || 'A' <= chr && chr <= 'Z' ||
 		'0' <= chr && chr <= '9' ||
 		chr >= utf8.RuneSelf && (unicode.IsLetter(chr) || unicode.IsDigit(chr))
 }
-
+// 扫描标识符
 func (self *_parser) scanIdentifier() (string, error) {
 	offset := self.chrOffset
 	parse := false
@@ -96,7 +96,7 @@ func (self *_parser) scanIdentifier() (string, error) {
 	return literal, nil
 }
 
-// 7.2
+// 7.2 判断是否是空格
 func isLineWhiteSpace(chr rune) bool {
 	switch chr {
 	case '\u0009', '\u000b', '\u000c', '\u0020', '\u00a0', '\ufeff':
@@ -109,7 +109,7 @@ func isLineWhiteSpace(chr rune) bool {
 	return unicode.IsSpace(chr)
 }
 
-// 7.3
+// 7.3 判断是行结束
 func isLineTerminator(chr rune) bool {
 	switch chr {
 	case '\u000a', '\u000d', '\u2028', '\u2029':
@@ -117,7 +117,7 @@ func isLineTerminator(chr rune) bool {
 	}
 	return false
 }
-
+// 词法分析，找下一个标记
 func (self *_parser) scan() (tkn token.Token, literal string, idx file.Idx) {
 
 	self.implicitSemicolon = false
@@ -138,6 +138,7 @@ func (self *_parser) scan() (tkn token.Token, literal string, idx file.Idx) {
 			}
 			if len(literal) > 1 {
 				// Keywords are longer than 1 character, avoid lookup otherwise
+				// 关键字长度超过1个字符，否则请避免查找
 				var strict bool
 				tkn, strict = token.IsKeyword(literal)
 
@@ -299,7 +300,7 @@ func (self *_parser) scan() (tkn token.Token, literal string, idx file.Idx) {
 		return
 	}
 }
-
+// 如果是等号，就返回tkn1，否则返回tkn0
 func (self *_parser) switch2(tkn0, tkn1 token.Token) token.Token {
 	if self.chr == '=' {
 		self.read()
@@ -307,7 +308,7 @@ func (self *_parser) switch2(tkn0, tkn1 token.Token) token.Token {
 	}
 	return tkn0
 }
-
+// 如果是等号，就返回tkn1，如果是chr2就返回tkn2，否则返回tkn0
 func (self *_parser) switch3(tkn0, tkn1 token.Token, chr2 rune, tkn2 token.Token) token.Token {
 	if self.chr == '=' {
 		self.read()
@@ -319,7 +320,7 @@ func (self *_parser) switch3(tkn0, tkn1 token.Token, chr2 rune, tkn2 token.Token
 	}
 	return tkn0
 }
-
+// 如果是等号，就返回tkn1，如果是chr2，后面一个是等号就返回tkn3，否则返回tkn2，都不是返回tkn0
 func (self *_parser) switch4(tkn0, tkn1 token.Token, chr2 rune, tkn2, tkn3 token.Token) token.Token {
 	if self.chr == '=' {
 		self.read()
@@ -335,7 +336,8 @@ func (self *_parser) switch4(tkn0, tkn1 token.Token, chr2 rune, tkn2, tkn3 token
 	}
 	return tkn0
 }
-
+// 如果是等号，就返回tkn1，如果是chr2，后面一个是等号就返回tkn3，后面一个是chr3，后面一个是等号就返回tkn5，否则返回tkn4，
+// 都不是就返回tkn2，最后都不是返回tkn0
 func (self *_parser) switch6(tkn0, tkn1 token.Token, chr2 rune, tkn2, tkn3 token.Token, chr3 rune, tkn4, tkn5 token.Token) token.Token {
 	if self.chr == '=' {
 		self.read()
@@ -359,7 +361,7 @@ func (self *_parser) switch6(tkn0, tkn1 token.Token, chr2 rune, tkn2, tkn3 token
 	}
 	return tkn0
 }
-
+// 获取index位置的utf8字符
 func (self *_parser) chrAt(index int) _chr {
 	value, width := utf8.DecodeRuneInString(self.str[index:])
 	return _chr{
@@ -367,14 +369,14 @@ func (self *_parser) chrAt(index int) _chr {
 		width: width,
 	}
 }
-
+// 获取下一个偏移位置
 func (self *_parser) _peek() rune {
 	if self.offset+1 < self.length {
 		return rune(self.str[self.offset+1])
 	}
 	return -1
 }
-
+// 读取下一个字符
 func (self *_parser) read() {
 	if self.offset < self.length {
 		self.chrOffset = self.offset
@@ -394,6 +396,8 @@ func (self *_parser) read() {
 }
 
 // This is here since the functions are so similar
+// 和上一个函数非常相似
+// 读取下一个字符
 func (self *_RegExp_parser) read() {
 	if self.offset < self.length {
 		self.chrOffset = self.offset
@@ -411,7 +415,7 @@ func (self *_RegExp_parser) read() {
 		self.chr = -1 // EOF
 	}
 }
-
+// 过滤单行注释
 func (self *_parser) skipSingleLineComment() {
 	for self.chr != -1 {
 		self.read()
@@ -420,7 +424,7 @@ func (self *_parser) skipSingleLineComment() {
 		}
 	}
 }
-
+// 过滤多行注释
 func (self *_parser) skipMultiLineComment() {
 	self.read()
 	for self.chr >= 0 {
@@ -434,7 +438,7 @@ func (self *_parser) skipMultiLineComment() {
 
 	self.errorUnexpected(0, self.chr)
 }
-
+// 过滤空格，行等
 func (self *_parser) skipWhiteSpace() {
 	for {
 		switch self.chr {
@@ -445,6 +449,8 @@ func (self *_parser) skipWhiteSpace() {
 			if self._peek() == '\n' {
 				self.read()
 			}
+			// Go里面switch默认相当于每个case最后带有break，匹配成功后不会自动向下执行其他case，而是跳出整个switch,
+			// 但是可以使用fallthrough强制执行后面的case代码
 			fallthrough
 		case '\u2028', '\u2029', '\n':
 			if self.insertSemicolon {
@@ -462,19 +468,19 @@ func (self *_parser) skipWhiteSpace() {
 		break
 	}
 }
-
+// 过滤所有空格
 func (self *_parser) skipLineWhiteSpace() {
 	for isLineWhiteSpace(self.chr) {
 		self.read()
 	}
 }
-
+// 如果当前是数字，继续读下一个
 func (self *_parser) scanMantissa(base int) {
 	for digitValue(self.chr) < base {
 		self.read()
 	}
 }
-
+// 扫描转义符
 func (self *_parser) scanEscape(quote rune) {
 
 	var length, base uint32
@@ -509,7 +515,7 @@ func (self *_parser) scanEscape(quote rune) {
 		self.read()
 	}
 }
-
+// 扫描字符串
 func (self *_parser) scanString(offset int) (string, error) {
 	// " ' /
 	quote := rune(self.str[offset])
@@ -552,7 +558,7 @@ newline:
 	}
 	return "", errors.New(err)
 }
-
+// 扫描换行
 func (self *_parser) scanNewline() {
 	if self.chr == '\r' {
 		self.read()
@@ -562,7 +568,7 @@ func (self *_parser) scanNewline() {
 	}
 	self.read()
 }
-
+// 十六进制字符转十进制
 func hex2decimal(chr byte) (value rune, ok bool) {
 	{
 		chr := rune(chr)
@@ -577,7 +583,7 @@ func hex2decimal(chr byte) (value rune, ok bool) {
 		return
 	}
 }
-
+// 解析数字文本
 func parseNumberLiteral(literal string) (value interface{}, err error) {
 	// TODO Is Uint okay? What about -MAX_UINT
 	value, err = strconv.ParseInt(literal, 0, 64)
@@ -616,7 +622,7 @@ func parseNumberLiteral(literal string) (value interface{}, err error) {
 error:
 	return nil, errors.New("Illegal numeric literal")
 }
-
+// 解析注释字符串文本
 func parseStringLiteral(literal string) (string, error) {
 	// Best case scenario...
 	if literal == "" {
@@ -624,6 +630,7 @@ func parseStringLiteral(literal string) (string, error) {
 	}
 
 	// Slightly less-best case scenario...
+	// 稍微不太理想的情况下。。。
 	if !strings.ContainsRune(literal, '\\') {
 		return literal, nil
 	}
@@ -637,6 +644,8 @@ S:
 		// We do not explicitly handle the case of the quote
 		// value, which can be: " ' /
 		// This assumes we're already passed a partially well-formed literal
+		//我们不显式处理引用的情况，它可以是：" ' /
+		//这假设我们已经传递了一个部分格式正确的文本
 		case chr >= utf8.RuneSelf:
 			chr, size := utf8.DecodeRuneInString(str)
 			buffer.WriteRune(chr)
@@ -751,7 +760,7 @@ S:
 
 	return buffer.String(), nil
 }
-
+// 扫描数字
 func (self *_parser) scanNumericLiteral(decimalPoint bool) (token.Token, string) {
 
 	offset := self.chrOffset
@@ -800,12 +809,15 @@ func (self *_parser) scanNumericLiteral(decimalPoint bool) (token.Token, string)
 
 	self.scanMantissa(10)
 
+
+// 浮点数读取
 float:
 	if self.chr == '.' {
 		self.read()
 		self.scanMantissa(10)
 	}
 
+// 指数读取
 exponent:
 	if self.chr == 'e' || self.chr == 'E' {
 		self.read()
@@ -819,7 +831,7 @@ exponent:
 			return token.ILLEGAL, self.str[offset:self.chrOffset]
 		}
 	}
-
+// 十六进制，八进制读取
 hexadecimal:
 octal:
 	if isIdentifierStart(self.chr) || isDecimalDigit(self.chr) {

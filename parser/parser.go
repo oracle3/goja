@@ -45,10 +45,11 @@ import (
 )
 
 // A Mode value is a set of flags (or 0). They control optional parser functionality.
+// Mode值是一组标志（或0）。它们控制可选的解析器功能。
 type Mode uint
 
 const (
-	IgnoreRegExpErrors Mode = 1 << iota // Ignore RegExp compatibility errors (allow backtracking)
+	IgnoreRegExpErrors Mode = 1 << iota // Ignore RegExp compatibility errors (allow backtracking) 忽略RegExp兼容性错误（允许回溯）
 )
 
 type _parser struct {
@@ -56,17 +57,17 @@ type _parser struct {
 	length int
 	base   int
 
-	chr       rune // The current character
-	chrOffset int  // The offset of current character
-	offset    int  // The offset after current character (may be greater than 1)
+	chr       rune // The current character 当前字符
+	chrOffset int  // The offset of current character 当前字符的偏移量
+	offset    int  // The offset after current character (may be greater than 1) 当前字符后的偏移量（可以大于1）
 
-	idx     file.Idx    // The index of token
-	token   token.Token // The token
-	literal string      // The literal of the token, if any
+	idx     file.Idx    // The index of token 标记索引
+	token   token.Token // The token 标记
+	literal string      // The literal of the token, if any 标记的文字（如果有）
 
 	scope             *_scope
-	insertSemicolon   bool // If we see a newline, then insert an implicit semicolon
-	implicitSemicolon bool // An implicit semicolon exists
+	insertSemicolon   bool // If we see a newline, then insert an implicit semicolon 如果看到换行符，则插入一个隐式分号
+	implicitSemicolon bool // An implicit semicolon exists 存在隐式分号
 
 	errors ErrorList
 
@@ -80,7 +81,7 @@ type _parser struct {
 
 	file *file.File
 }
-
+// 创建一个解析器
 func _newParser(filename, src string, base int) *_parser {
 	return &_parser{
 		chr:    ' ', // This is set so we can start scanning by skipping whitespace
@@ -90,11 +91,11 @@ func _newParser(filename, src string, base int) *_parser {
 		file:   file.NewFile(filename, src, base),
 	}
 }
-
+// 创建一个解析器
 func newParser(filename, src string) *_parser {
 	return _newParser(filename, src, 1)
 }
-
+// 读取文件或字符串，返回byte数组
 func ReadSource(filename string, src interface{}) ([]byte, error) {
 	if src != nil {
 		switch src := src.(type) {
@@ -131,6 +132,18 @@ func ReadSource(filename string, src interface{}) ([]byte, error) {
 //      // Parse some JavaScript, yielding a *ast.Program and/or an ErrorList
 //      program, err := parser.ParseFile(nil, "", `if (abc > 1) {}`, 0)
 //
+//ParseFile解析单个JavaScript/ECMAScript源文件的源代码，并返回相应的ast.Program节点。
+//
+//如果fileSet==nil，ParseFile将解析没有文件集的源。
+//如果fileSet!=nil，ParseFile首先将filename和src添加到文件集。
+//
+//filename参数是可选的，用于标记错误等。
+//
+//src可以是字符串、字节片、bytes.Buffer或io.Reader，但它必须始终是UTF-8格式的。
+//
+////Parse一些JavaScript，产生一个*ast.Program和一个ErrorList，
+// program, err := parser.ParseFile(nil, "", `if (abc > 1) {}`, 0)
+
 func ParseFile(fileSet *file.FileSet, filename string, src interface{}, mode Mode) (*ast.Program, error) {
 	str, err := ReadSource(filename, src)
 	if err != nil {
@@ -155,6 +168,10 @@ func ParseFile(fileSet *file.FileSet, filename string, src interface{}, mode Mod
 //
 // The parameter list, if any, should be a comma-separated list of identifiers.
 //
+//ParseFunction将给定的参数列表和正文作为函数进行分析，并返回相应的ast.FunctionLiteral节点。
+//
+//参数列表（如果有）应该是用逗号分隔的标识符列表。
+//
 func ParseFunction(parameterList, body string) (*ast.FunctionLiteral, error) {
 
 	src := "(function(" + parameterList + ") {\n" + body + "\n})"
@@ -167,7 +184,7 @@ func ParseFunction(parameterList, body string) (*ast.FunctionLiteral, error) {
 
 	return program.Body[0].(*ast.ExpressionStatement).Expression.(*ast.FunctionLiteral), nil
 }
-
+// 获取idx0和id1之间的分片数据
 func (self *_parser) slice(idx0, idx1 file.Idx) string {
 	from := int(idx0) - self.base
 	to := int(idx1) - self.base
@@ -177,7 +194,7 @@ func (self *_parser) slice(idx0, idx1 file.Idx) string {
 
 	return ""
 }
-
+// 开始解析
 func (self *_parser) parse() (*ast.Program, error) {
 	self.next()
 	program := self.parseProgram()
@@ -186,11 +203,11 @@ func (self *_parser) parse() (*ast.Program, error) {
 	}
 	return program, self.errors.Err()
 }
-
+// 获得下一个标记
 func (self *_parser) next() {
 	self.token, self.literal, self.idx = self.scan()
 }
-
+// 可选的分号解析
 func (self *_parser) optionalSemicolon() {
 	if self.token == token.SEMICOLON {
 		self.next()
@@ -206,7 +223,7 @@ func (self *_parser) optionalSemicolon() {
 		self.expect(token.SEMICOLON)
 	}
 }
-
+// 分号解析
 func (self *_parser) semicolon() {
 	if self.token != token.RIGHT_PARENTHESIS && self.token != token.RIGHT_BRACE {
 		if self.implicitSemicolon {
@@ -217,11 +234,11 @@ func (self *_parser) semicolon() {
 		self.expect(token.SEMICOLON)
 	}
 }
-
+// 获得偏移量
 func (self *_parser) idxOf(offset int) file.Idx {
 	return file.Idx(self.base + offset)
 }
-
+// 如果是预期标签则获取下一个
 func (self *_parser) expect(value token.Token) file.Idx {
 	idx := self.idx
 	if self.token != value {
@@ -230,7 +247,7 @@ func (self *_parser) expect(value token.Token) file.Idx {
 	self.next()
 	return idx
 }
-
+// 计数str的代码行数
 func lineCount(str string) (int, int) {
 	line, last := 0, -1
 	pair := false
@@ -254,7 +271,7 @@ func lineCount(str string) (int, int) {
 	}
 	return line, last
 }
-
+// 记录行号和列数
 func (self *_parser) position(idx file.Idx) file.Position {
 	position := file.Position{}
 	offset := int(idx) - self.base

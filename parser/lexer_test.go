@@ -17,15 +17,18 @@ func TestLexer(t *testing.T) {
 		test := func(src string, test ...interface{}) {
 			parser := setup(src)
 			for len(test) > 0 {
-				tkn, literal, idx := parser.scan()
+				tkn, literal, idx := parser.scan() // 每次取一个标记比较
+				// 先比较标记匹配
 				if len(test) > 0 {
 					is(tkn, test[0].(token.Token))
-					test = test[1:]
+					test = test[1:] // 取下一个比较
 				}
+				// 再比较字符串匹配
 				if len(test) > 0 {
 					is(literal, test[0].(string))
 					test = test[1:]
 				}
+				// 再比较索引匹配
 				if len(test) > 0 {
 					// FIXME terst, Fix this so that cast to file.Idx is not necessary?
 					is(idx, file.Idx(test[0].(int)))

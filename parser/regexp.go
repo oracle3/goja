@@ -8,6 +8,7 @@ import (
 	"unicode/utf8"
 )
 
+// 空白字符
 const (
 	WhitespaceChars = " \f\n\r\t\v\u00a0\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u2028\u2029\u202f\u205f\u3000\ufeff"
 )
@@ -16,12 +17,12 @@ type _RegExp_parser struct {
 	str    string
 	length int
 
-	chr       rune // The current character
-	chrOffset int  // The offset of current character
-	offset    int  // The offset after current character (may be greater than 1)
+	chr       rune // The current character 当前字符
+	chrOffset int  // The offset of current character 当前字符偏移量
+	offset    int  // The offset after current character (may be greater than 1) 当前字符之后的偏移量
 
 	errors  []error
-	invalid bool // The input is an invalid JavaScript RegExp
+	invalid bool // The input is an invalid JavaScript RegExp 输入是无效的JavaScript正则表达式
 
 	goRegexp *bytes.Buffer
 }
@@ -39,6 +40,19 @@ type _RegExp_parser struct {
 //
 // If the pattern is valid, but incompatible (contains a lookahead or backreference),
 // then this function returns the transformation (a non-empty string) AND an error.
+//TransformRegExp将JavaScript模式匹配转换为Go的正则表达式。
+//
+//re2（Go）不能进行回溯，因此存在前视（？）？=) (?!) 或
+//反向引用（\1、\2，…）将导致错误。
+//
+//re2（Go）对\s: [\t\n\f\r ]有不同的定义
+//另一方面，JavaScript定义还包括\v、Unicode“分隔符、空格”等。
+//
+//如果模式无效（即使在JavaScript中也无效），则此函数
+//返回空字符串和错误。
+//
+//如果模式有效但不兼容（包含前向或后向引用），
+//然后此函数返回转换（非空字符串）和错误。
 func TransformRegExp(pattern string) (string, error) {
 
 	if pattern == "" {
@@ -46,6 +60,7 @@ func TransformRegExp(pattern string) (string, error) {
 	}
 
 	// TODO If without \, if without (?=, (?!, then another shortcut
+	// 如果没有\，如果没有（？）？=, (?!，然后是另一个快捷方式
 
 	parser := _RegExp_parser{
 		str:      pattern,
@@ -65,7 +80,7 @@ func TransformRegExp(pattern string) (string, error) {
 	// Might not be re2 compatible, but is still a valid JavaScript RegExp
 	return parser.goRegexp.String(), err
 }
-
+// 扫描解析
 func (self *_RegExp_parser) scan() {
 	for self.chr != -1 {
 		switch self.chr {
@@ -90,7 +105,7 @@ func (self *_RegExp_parser) scan() {
 	}
 }
 
-// (...)
+// (...) 处理圆括号内的内容
 func (self *_RegExp_parser) scanGroup() {
 	str := self.str[self.chrOffset:]
 	if len(str) > 1 { // A possibility of (?= or (?!
@@ -126,7 +141,7 @@ func (self *_RegExp_parser) scanGroup() {
 	self.pass()
 }
 
-// [...]
+// [...] 处理方括号内的内容
 func (self *_RegExp_parser) scanBracket() {
 	str := self.str[self.chrOffset:]
 	if strings.HasPrefix(str, "[]") {
@@ -163,7 +178,7 @@ func (self *_RegExp_parser) scanBracket() {
 	self.pass()
 }
 
-// \...
+// \... 处理斜杠后的转义符
 func (self *_RegExp_parser) scanEscape(inClass bool) {
 	offset := self.chrOffset
 
@@ -383,7 +398,7 @@ skip:
 		self.errors = append(self.errors, err)
 	}
 }
-
+// 当前字符添加到正则表达式buf中，然后读取下一个字符
 func (self *_RegExp_parser) pass() {
 	if self.chr != -1 {
 		_, err := self.goRegexp.WriteRune(self.chr)
@@ -394,7 +409,7 @@ func (self *_RegExp_parser) pass() {
 	self.read()
 }
 
-// TODO Better error reporting, use the offset, etc.
+// TODO Better error reporting, use the offset, etc. 更好的错误报告、使用偏移量等。
 func (self *_RegExp_parser) error(offset int, msg string, msgValues ...interface{}) error {
 	err := fmt.Errorf(msg, msgValues...)
 	self.errors = append(self.errors, err)

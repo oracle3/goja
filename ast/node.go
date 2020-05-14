@@ -6,6 +6,10 @@ Warning
 The parser and AST interfaces are still works-in-progress (particularly where
 node types are concerned) and may change in the future.
 
+ast包声明表示JavaScript ast的类型。
+警告
+解析器和AST接口仍在工作（特别是在
+有关节点类型），并且在将来可能会更改。
 */
 package ast
 
@@ -16,9 +20,10 @@ import (
 )
 
 // All nodes implement the Node interface.
+// 节点接口。
 type Node interface {
-	Idx0() file.Idx // The index of the first character belonging to the node
-	Idx1() file.Idx // The index of the first character immediately after the node
+	Idx0() file.Idx // The index of the first character belonging to the node 属于节点的第一个字符的索引
+	Idx1() file.Idx // The index of the first character immediately after the node 紧接在节点之后的第一个字符的索引
 }
 
 // ========== //
@@ -27,6 +32,7 @@ type Node interface {
 
 type (
 	// All expression nodes implement the Expression interface.
+	// 所有表达式节点都实现表达式接口。
 	Expression interface {
 		Node
 		_expressionNode()
@@ -204,6 +210,7 @@ func (*VariableExpression) _expressionNode()    {}
 
 type (
 	// All statement nodes implement the Statement interface.
+	//所有语句节点都实现了语句接口。
 	Statement interface {
 		Node
 		_statementNode()
@@ -355,6 +362,7 @@ func (*WithStatement) _statementNode()       {}
 
 type (
 	// All declaration nodes implement the Declaration interface.
+	//所有声明节点都实现声明接口。
 	Declaration interface {
 		_declarationNode()
 	}

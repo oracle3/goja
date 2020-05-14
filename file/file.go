@@ -16,16 +16,18 @@ type Idx int
 
 // Position describes an arbitrary source position
 // including the filename, line, and column location.
+//位置描述任意源位置
+//包括文件名、行和列位置。
 type Position struct {
-	Filename string // The filename where the error occurred, if any
-	Offset   int    // The src offset
-	Line     int    // The line number, starting at 1
-	Column   int    // The column number, starting at 1 (The character count)
+	Filename string // The filename where the error occurred, if any 发生错误的文件名（如果有）
+	Offset   int    // The src offset 文件偏移量
+	Line     int    // The line number, starting at 1 行号，从1开始
+	Column   int    // The column number, starting at 1 (The character count) 列号，从1开始（字符计数）
 
 }
 
 // A Position is valid if the line number is > 0.
-
+//如果行号大于0，则位置有效。
 func (self *Position) isValid() bool {
 	return self.Line > 0
 }
@@ -37,6 +39,14 @@ func (self *Position) isValid() bool {
 //	file                An invalid position with filename
 //	-                   An invalid position without filename
 //
+//String以以下几种形式之一返回字符串：
+//
+//文件：行：列 有文件名的有效位置
+//行：列 没有文件名的有效位置
+//文件 有文件名的无效位置
+//- 没有文件名的无效位置
+//
+
 func (self *Position) String() string {
 	str := self.Filename
 	if self.isValid() {
@@ -54,6 +64,7 @@ func (self *Position) String() string {
 // FileSet
 
 // A FileSet represents a set of source files.
+//文件集表示一组源文件。
 type FileSet struct {
 	files []*File
 	last  *File
@@ -62,6 +73,10 @@ type FileSet struct {
 // AddFile adds a new file with the given filename and src.
 //
 // This an internal method, but exported for cross-package use.
+//AddFile添加具有给定文件名和src的新文件。
+//
+//这是一个内部方法，但导出用于跨包使用。
+
 func (self *FileSet) AddFile(filename, src string) int {
 	base := self.nextBase()
 	file := &File{
@@ -73,14 +88,14 @@ func (self *FileSet) AddFile(filename, src string) int {
 	self.last = file
 	return base
 }
-
+// 返回文件集的文件索引
 func (self *FileSet) nextBase() int {
 	if self.last == nil {
 		return 1
 	}
 	return self.last.base + len(self.last.src) + 1
 }
-
+// 返回指定位置的文件
 func (self *FileSet) File(idx Idx) *File {
 	for _, file := range self.files {
 		if idx <= Idx(file.base+len(file.src)) {
@@ -91,6 +106,7 @@ func (self *FileSet) File(idx Idx) *File {
 }
 
 // Position converts an Idx in the FileSet into a Position.
+// Position将文件集中的Idx转换为Position。
 func (self *FileSet) Position(idx Idx) *Position {
 	position := &Position{}
 	for _, file := range self.files {

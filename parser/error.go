@@ -55,7 +55,7 @@ type Error struct {
 }
 
 // FIXME Should this be "SyntaxError"?
-
+// 输出错误字符串
 func (self Error) Error() string {
 	filename := self.Position.Filename
 	if filename == "" {
@@ -68,7 +68,7 @@ func (self Error) Error() string {
 		self.Message,
 	)
 }
-
+// 添加错误信息到错误列表，并返回
 func (self *_parser) error(place interface{}, msg string, msgValues ...interface{}) *Error {
 	idx := file.Idx(0)
 	switch place := place.(type) {
@@ -96,7 +96,7 @@ func (self *_parser) errorUnexpected(idx file.Idx, chr rune) error {
 	}
 	return self.error(idx, err_UnexpectedToken, token.ILLEGAL)
 }
-
+// 非预期标签出错处理
 func (self *_parser) errorUnexpectedToken(tkn token.Token) error {
 	switch tkn {
 	case token.EOF:

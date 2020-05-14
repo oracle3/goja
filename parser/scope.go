@@ -14,22 +14,22 @@ type _scope struct {
 
 	labels []string
 }
-
+// 开始一个作用域，一般是程序开始，函数开始
 func (self *_parser) openScope() {
 	self.scope = &_scope{
 		outer:   self.scope,
 		allowIn: true,
 	}
 }
-
+// 结束一个作用域
 func (self *_parser) closeScope() {
 	self.scope = self.scope.outer
 }
-
+// 添加函数或变量声明
 func (self *_scope) declare(declaration ast.Declaration) {
 	self.declarationList = append(self.declarationList, declaration)
 }
-
+// 查找一个标记
 func (self *_scope) hasLabel(name string) bool {
 	for _, label := range self.labels {
 		if label == name {

@@ -11,7 +11,7 @@ import (
 	"os"
 	"strings"
 )
-
+// 分析大括号内的语句
 func (self *_parser) parseBlockStatement() *ast.BlockStatement {
 	node := &ast.BlockStatement{}
 	node.LeftBrace = self.expect(token.LEFT_BRACE)
@@ -20,12 +20,12 @@ func (self *_parser) parseBlockStatement() *ast.BlockStatement {
 
 	return node
 }
-
+// 解析空语句
 func (self *_parser) parseEmptyStatement() ast.Statement {
 	idx := self.expect(token.SEMICOLON)
 	return &ast.EmptyStatement{Semicolon: idx}
 }
-
+// 解析语句列表
 func (self *_parser) parseStatementList() (list []ast.Statement) {
 	for self.token != token.RIGHT_BRACE && self.token != token.EOF {
 		list = append(list, self.parseStatement())
@@ -33,7 +33,7 @@ func (self *_parser) parseStatementList() (list []ast.Statement) {
 
 	return
 }
-
+// 语句解析
 func (self *_parser) parseStatement() ast.Statement {
 
 	if self.token == token.EOF {
@@ -106,7 +106,7 @@ func (self *_parser) parseStatement() ast.Statement {
 		Expression: expression,
 	}
 }
-
+// 解析try语句
 func (self *_parser) parseTryStatement() ast.Statement {
 
 	node := &ast.TryStatement{
@@ -145,7 +145,7 @@ func (self *_parser) parseTryStatement() ast.Statement {
 
 	return node
 }
-
+// 解析函数参数列表
 func (self *_parser) parseFunctionParameterList() *ast.ParameterList {
 	opening := self.expect(token.LEFT_PARENTHESIS)
 	var list []*ast.Identifier
@@ -167,7 +167,7 @@ func (self *_parser) parseFunctionParameterList() *ast.ParameterList {
 		Closing: closing,
 	}
 }
-
+// 解析参数列表
 func (self *_parser) parseParameterList() (list []string) {
 	for self.token != token.EOF {
 		if self.token != token.IDENTIFIER {
@@ -181,7 +181,7 @@ func (self *_parser) parseParameterList() (list []string) {
 	}
 	return
 }
-
+// 解析函数
 func (self *_parser) parseFunction(declaration bool) *ast.FunctionLiteral {
 
 	node := &ast.FunctionLiteral{
@@ -207,7 +207,7 @@ func (self *_parser) parseFunction(declaration bool) *ast.FunctionLiteral {
 
 	return node
 }
-
+// 解析函数体
 func (self *_parser) parseFunctionBlock(node *ast.FunctionLiteral) {
 	{
 		self.openScope()
@@ -221,7 +221,7 @@ func (self *_parser) parseFunctionBlock(node *ast.FunctionLiteral) {
 		node.DeclarationList = self.scope.declarationList
 	}
 }
-
+// 分析调试语句
 func (self *_parser) parseDebuggerStatement() ast.Statement {
 	idx := self.expect(token.DEBUGGER)
 
@@ -233,7 +233,7 @@ func (self *_parser) parseDebuggerStatement() ast.Statement {
 
 	return node
 }
-
+// 分析返回语句
 func (self *_parser) parseReturnStatement() ast.Statement {
 	idx := self.expect(token.RETURN)
 
@@ -255,7 +255,7 @@ func (self *_parser) parseReturnStatement() ast.Statement {
 
 	return node
 }
-
+// 分析throw语句
 func (self *_parser) parseThrowStatement() ast.Statement {
 	idx := self.expect(token.THROW)
 
@@ -277,7 +277,7 @@ func (self *_parser) parseThrowStatement() ast.Statement {
 
 	return node
 }
-
+// 分析switch语句
 func (self *_parser) parseSwitchStatement() ast.Statement {
 	self.expect(token.SWITCH)
 	self.expect(token.LEFT_PARENTHESIS)
@@ -313,7 +313,7 @@ func (self *_parser) parseSwitchStatement() ast.Statement {
 
 	return node
 }
-
+// 分析with语句
 func (self *_parser) parseWithStatement() ast.Statement {
 	self.expect(token.WITH)
 	self.expect(token.LEFT_PARENTHESIS)
@@ -326,7 +326,7 @@ func (self *_parser) parseWithStatement() ast.Statement {
 
 	return node
 }
-
+// 分析case语句
 func (self *_parser) parseCaseStatement() *ast.CaseStatement {
 
 	node := &ast.CaseStatement{
@@ -353,7 +353,7 @@ func (self *_parser) parseCaseStatement() *ast.CaseStatement {
 
 	return node
 }
-
+// 解析迭代语句
 func (self *_parser) parseIterationStatement() ast.Statement {
 	inIteration := self.scope.inIteration
 	self.scope.inIteration = true
@@ -545,7 +545,7 @@ func (self *_parser) parseSourceElements() []ast.Statement {
 
 	return body
 }
-
+// 解析程序
 func (self *_parser) parseProgram() *ast.Program {
 	self.openScope()
 	defer self.closeScope()

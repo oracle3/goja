@@ -11,7 +11,7 @@ import (
 
 	"github.com/dop251/goja/ast"
 )
-
+// 构造一个json格式的数据
 func marshal(name string, children ...interface{}) interface{} {
 	if len(children) == 1 {
 		if name == "" {
@@ -35,7 +35,7 @@ func marshal(name string, children ...interface{}) interface{} {
 		name: map_,
 	}
 }
-
+// 对node做json序列化处理
 func testMarshalNode(node interface{}) interface{} {
 	switch node := node.(type) {
 
@@ -182,7 +182,7 @@ func testMarshalNode(node interface{}) interface{} {
 
 	return nil
 }
-
+// 构造json格式
 func testMarshal(node interface{}) string {
 	value, err := json.Marshal(testMarshalNode(node))
 	if err != nil {
@@ -190,17 +190,21 @@ func testMarshal(node interface{}) string {
 	}
 	return string(value)
 }
-
+// ast解析测试
 func TestParserAST(t *testing.T) {
 	tt(t, func() {
 
 		test := func(inputOutput string) {
+			// 通过正则表达式分解输入和预期输出
 			match := matchBeforeAfterSeparator.FindStringIndex(inputOutput)
 			input := strings.TrimSpace(inputOutput[0:match[0]])
 			wantOutput := strings.TrimSpace(inputOutput[match[1]:])
+			// 解析输入
 			_, program, err := testParse(input)
 			is(err, nil)
+			// 生成输出
 			haveOutput := testMarshal(program)
+			// 输出和预期输出对比
 			tmp0, tmp1 := bytes.Buffer{}, bytes.Buffer{}
 			json.Indent(&tmp0, []byte(haveOutput), "\t\t", "   ")
 			json.Indent(&tmp1, []byte(wantOutput), "\t\t", "   ")
