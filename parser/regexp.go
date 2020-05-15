@@ -12,7 +12,7 @@ import (
 const (
 	WhitespaceChars = " \f\n\r\t\v\u00a0\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u2028\u2029\u202f\u205f\u3000\ufeff"
 )
-
+// js正则表达式解析结构
 type _RegExp_parser struct {
 	str    string
 	length int
@@ -24,7 +24,7 @@ type _RegExp_parser struct {
 	errors  []error
 	invalid bool // The input is an invalid JavaScript RegExp 输入是无效的JavaScript正则表达式
 
-	goRegexp *bytes.Buffer
+	goRegexp *bytes.Buffer // 转换为go的正则表达式
 }
 
 // TransformRegExp transforms a JavaScript pattern into  a Go "regexp" pattern.

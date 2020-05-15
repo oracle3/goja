@@ -362,10 +362,10 @@ func (self *_parser) parseIterationStatement() ast.Statement {
 	}()
 	return self.parseStatement()
 }
-
+// for表达式解析
 func (self *_parser) parseForIn(idx file.Idx, into ast.Expression) *ast.ForInStatement {
 
-	// Already have consumed "<into> in"
+	// Already have consumed "<into> in" 已消耗“<into>in”
 
 	source := self.parseExpression()
 	self.expect(token.RIGHT_PARENTHESIS)

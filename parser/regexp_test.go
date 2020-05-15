@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"testing"
 )
-
+// js正则表达式转换为go的测试
 func TestRegExp(t *testing.T) {
 	tt(t, func() {
 		{
@@ -116,7 +116,7 @@ func TestRegExp(t *testing.T) {
 		}
 	})
 }
-
+// 正则表达式匹配测试
 func TestTransformRegExp(t *testing.T) {
 	tt(t, func() {
 		pattern, err := TransformRegExp(`\s+abc\s+`)

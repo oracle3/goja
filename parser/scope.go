@@ -3,7 +3,7 @@ package parser
 import (
 	"github.com/dop251/goja/ast"
 )
-
+// 每个大括号是一个作用域的开始
 type _scope struct {
 	outer           *_scope
 	allowIn         bool
