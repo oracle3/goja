@@ -146,7 +146,7 @@ func (r *Runtime) math_sqrt(call FunctionCall) Value {
 func (r *Runtime) math_tan(call FunctionCall) Value {
 	return floatToValue(math.Tan(call.Argument(0).ToFloat()))
 }
-
+// Math库函数注入
 func (r *Runtime) createMath(val *Object) objectImpl {
 	m := &baseObject{
 		class:      "Math",
@@ -155,9 +155,11 @@ func (r *Runtime) createMath(val *Object) objectImpl {
 		prototype:  r.global.ObjectPrototype,
 	}
 	m.init()
-
+	// 返回算术常量 e，即自然对数的底数（约等于2.718）
 	m._putProp("E", valueFloat(math.E), false, false, false)
+	// 返回 10 的自然对数（约等于2.302）
 	m._putProp("LN10", valueFloat(math.Ln10), false, false, false)
+	// 
 	m._putProp("LN2", valueFloat(math.Ln2), false, false, false)
 	m._putProp("LOG2E", valueFloat(math.Log2E), false, false, false)
 	m._putProp("LOG10E", valueFloat(math.Log10E), false, false, false)
@@ -186,7 +188,7 @@ func (r *Runtime) createMath(val *Object) objectImpl {
 
 	return m
 }
-
+// Math库的注入
 func (r *Runtime) initMath() {
 	r.addToGlobal("Math", r.newLazyObject(r.createMath))
 }

@@ -54,7 +54,7 @@ var (
 		"2006-01T15:04:05Z0700",
 	}
 )
-
+// 日期字符串解析成time
 func dateParse(date string) (time.Time, bool) {
 	var t time.Time
 	var err error

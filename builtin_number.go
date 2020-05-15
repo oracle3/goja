@@ -4,7 +4,7 @@ import (
 	"math"
 	"strconv"
 )
-
+// 获得当前的数字
 func (r *Runtime) numberproto_valueOf(call FunctionCall) Value {
 	this := call.This
 	if !isNumber(this) {
@@ -27,7 +27,7 @@ func (r *Runtime) numberproto_valueOf(call FunctionCall) Value {
 	r.typeErrorResult(true, "Number.prototype.valueOf is not generic")
 	return nil
 }
-
+// 判断当前是否数字
 func isNumber(v Value) bool {
 	switch t := v.(type) {
 	case valueFloat, valueInt:
@@ -40,7 +40,7 @@ func isNumber(v Value) bool {
 	}
 	return false
 }
-
+// 数字转换为字符串
 func (r *Runtime) numberproto_toString(call FunctionCall) Value {
 	if !isNumber(call.This) {
 		r.typeErrorResult(true, "Value is not a number")
@@ -82,10 +82,11 @@ func (r *Runtime) numberproto_toString(call FunctionCall) Value {
 
 	return asciiString(dtobasestr(num, radix))
 }
-
+// 把数字转换为字符串，结果的小数点后有指定位数的数字
 func (r *Runtime) numberproto_toFixed(call FunctionCall) Value {
 	prec := call.Argument(0).ToInteger()
 	if prec < 0 || prec > 20 {
+		// toFixed 精度必须介于0和20之间
 		panic(r.newError(r.global.RangeError, "toFixed() precision must be between 0 and 20"))
 	}
 
@@ -98,7 +99,7 @@ func (r *Runtime) numberproto_toFixed(call FunctionCall) Value {
 	}
 	return asciiString(strconv.FormatFloat(num, 'f', int(prec), 64))
 }
-
+// 把对象的值转换为指数计数法
 func (r *Runtime) numberproto_toExponential(call FunctionCall) Value {
 	prec := call.Argument(0).ToInteger()
 	if prec < 0 || prec > 20 {
@@ -114,7 +115,7 @@ func (r *Runtime) numberproto_toExponential(call FunctionCall) Value {
 	}
 	return asciiString(strconv.FormatFloat(num, 'e', int(prec), 64))
 }
-
+// 把数字格式化为指定的长度
 func (r *Runtime) numberproto_toPrecision(call FunctionCall) Value {
 	prec := call.Argument(0).ToInteger()
 	if prec < 0 || prec > 20 {
@@ -130,7 +131,7 @@ func (r *Runtime) numberproto_toPrecision(call FunctionCall) Value {
 	}
 	return asciiString(strconv.FormatFloat(num, 'g', int(prec), 64))
 }
-
+// Number对象的注入
 func (r *Runtime) initNumber() {
 	r.global.NumberPrototype = r.newPrimitiveObject(valueInt(0), r.global.ObjectPrototype, classNumber)
 	o := r.global.NumberPrototype.self
