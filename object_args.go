@@ -9,27 +9,27 @@ type mappedProperty struct {
 	valueProperty
 	v *Value
 }
-
+// 获取属性
 func (a *argumentsObject) getPropStr(name string) Value {
 	if prop, ok := a.values[name].(*mappedProperty); ok {
 		return *prop.v
 	}
 	return a.baseObject.getPropStr(name)
 }
-
+// 获取属性
 func (a *argumentsObject) getProp(n Value) Value {
 	return a.getPropStr(n.String())
 }
-
+// 初始化
 func (a *argumentsObject) init() {
 	a.baseObject.init()
 	a._putProp("length", intToValue(int64(a.length)), true, false, true)
 }
-
+// 设置属性
 func (a *argumentsObject) put(n Value, val Value, throw bool) {
 	a.putStr(n.String(), val, throw)
 }
-
+// 设置属性
 func (a *argumentsObject) putStr(name string, val Value, throw bool) {
 	if prop, ok := a.values[name].(*mappedProperty); ok {
 		if !prop.writable {
@@ -41,7 +41,7 @@ func (a *argumentsObject) putStr(name string, val Value, throw bool) {
 	}
 	a.baseObject.putStr(name, val, throw)
 }
-
+// 删除属性
 func (a *argumentsObject) deleteStr(name string, throw bool) bool {
 	if prop, ok := a.values[name].(*mappedProperty); ok {
 		if !a.checkDeleteProp(name, &prop.valueProperty, throw) {
@@ -53,7 +53,7 @@ func (a *argumentsObject) deleteStr(name string, throw bool) bool {
 
 	return a.baseObject.deleteStr(name, throw)
 }
-
+// 删除属性
 func (a *argumentsObject) delete(n Value, throw bool) bool {
 	return a.deleteStr(n.String(), throw)
 }
@@ -67,7 +67,7 @@ type argumentsPropIter1 struct {
 type argumentsPropIter struct {
 	wrapped iterNextFunc
 }
-
+// 下一个
 func (i *argumentsPropIter) next() (propIterItem, iterNextFunc) {
 	var item propIterItem
 	item, i.wrapped = i.wrapped()
@@ -86,13 +86,13 @@ func (a *argumentsObject) _enumerate(recursive bool) iterNextFunc {
 	}).next
 
 }
-
+// 枚举迭代
 func (a *argumentsObject) enumerate(all, recursive bool) iterNextFunc {
 	return (&argumentsPropIter{
 		wrapped: a.baseObject.enumerate(all, recursive),
 	}).next
 }
-
+// 定义属性
 func (a *argumentsObject) defineOwnProperty(n Value, descr propertyDescr, throw bool) bool {
 	name := n.String()
 	if mapped, ok := a.values[name].(*mappedProperty); ok {
@@ -129,7 +129,7 @@ func (a *argumentsObject) defineOwnProperty(n Value, descr propertyDescr, throw 
 
 	return a.baseObject.defineOwnProperty(n, descr, throw)
 }
-
+// 获取属性
 func (a *argumentsObject) getOwnProp(name string) Value {
 	if mapped, ok := a.values[name].(*mappedProperty); ok {
 		return *mapped.v
@@ -137,7 +137,7 @@ func (a *argumentsObject) getOwnProp(name string) Value {
 
 	return a.baseObject.getOwnProp(name)
 }
-
+// 导出基本数据
 func (a *argumentsObject) export() interface{} {
 	arr := make([]interface{}, a.length)
 	for i, _ := range arr {

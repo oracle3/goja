@@ -26,7 +26,7 @@ type regexpObject struct {
 
 	global, multiline, ignoreCase bool
 }
-
+//在输入字符串中搜索正则表达式匹配项
 func (r *regexp2Wrapper) FindSubmatchIndex(s valueString, start int) (result []int) {
 	wrapped := (*regexp2.Regexp)(r)
 	var match *regexp2.Match
@@ -58,7 +58,7 @@ func (r *regexp2Wrapper) FindSubmatchIndex(s valueString, start int) (result []i
 	}
 	return
 }
-
+//在输入字符串中搜索正则表达式匹配项
 func (r *regexp2Wrapper) FindAllSubmatchIndexUTF8(s string, n int) [][]int {
 	wrapped := (*regexp2.Regexp)(r)
 	if n < 0 {
@@ -101,7 +101,7 @@ func (r *regexp2Wrapper) FindAllSubmatchIndexUTF8(s string, n int) [][]int {
 	}
 	return results
 }
-
+//在输入字符串中搜索正则表达式匹配项
 func (r *regexp2Wrapper) FindAllSubmatchIndexASCII(s string, n int) [][]int {
 	wrapped := (*regexp2.Regexp)(r)
 	if n < 0 {
@@ -136,7 +136,7 @@ func (r *regexp2Wrapper) FindAllSubmatchIndexASCII(s string, n int) [][]int {
 	}
 	return results
 }
-
+//在输入字符串中搜索正则表达式匹配项
 func (r *regexp2Wrapper) findAllSubmatchIndexUTF16(s unicodeString, n int) [][]int {
 	wrapped := (*regexp2.Regexp)(r)
 	if n < 0 {
@@ -188,7 +188,7 @@ func (r *regexp2Wrapper) findAllSubmatchIndexUTF16(s unicodeString, n int) [][]i
 	}
 	return results
 }
-
+//在输入字符串中搜索正则表达式匹配项
 func (r *regexp2Wrapper) FindAllSubmatchIndex(s valueString, n int) [][]int {
 	switch s := s.(type) {
 	case asciiString:
@@ -199,7 +199,7 @@ func (r *regexp2Wrapper) FindAllSubmatchIndex(s valueString, n int) [][]int {
 		panic("Unsupported string type")
 	}
 }
-
+//如果字符串与正则表达式匹配，则MatchString返回true，如果发生超时则将设置错误
 func (r *regexp2Wrapper) MatchString(s valueString) bool {
 	wrapped := (*regexp2.Regexp)(r)
 
@@ -214,17 +214,19 @@ func (r *regexp2Wrapper) MatchString(s valueString) bool {
 		panic(fmt.Errorf("Unknown string type: %T", s))
 	}
 }
-
+// FindReaderSubmatchIndex返回一个切片，其中包含索引对，该对对标识由RuneReader读取的文本的正则表达式的最左端匹配，
+//以及其子表达式的匹配项（如果有），返回值nil表示不匹配。
 func (r *regexpWrapper) FindSubmatchIndex(s valueString, start int) (result []int) {
 	wrapped := (*regexp.Regexp)(r)
 	return wrapped.FindReaderSubmatchIndex(runeReaderReplace{s.reader(start)})
 }
-
+// MatchReader报告RuneReader返回的文本是否包含正则表达式的任何匹配项。
 func (r *regexpWrapper) MatchString(s valueString) bool {
 	wrapped := (*regexp.Regexp)(r)
 	return wrapped.MatchReader(runeReaderReplace{s.reader(0)})
 }
-
+// FindAllStringSubmatchIndex是FindStringSubmatchIndex的“全部”版本；
+//它返回表达式的所有连续匹配的一部分，如包注释中的“全部”描述所定义。 返回值nil表示不匹配。
 func (r *regexpWrapper) FindAllSubmatchIndex(s valueString, n int) [][]int {
 	wrapped := (*regexp.Regexp)(r)
 	switch s := s.(type) {
@@ -278,7 +280,7 @@ func (r *regexpWrapper) findAllSubmatchIndexUTF16(s unicodeString, n int) [][]in
 	}
 	return rr
 }
-
+// 将匹配结果转换为数组
 func (r *regexpObject) execResultToArray(target valueString, result []int) Value {
 	captureCount := len(result) >> 1
 	valueArray := make([]Value, captureCount)
@@ -298,7 +300,7 @@ func (r *regexpObject) execResultToArray(target valueString, result []int) Value
 	match.self.putStr("index", intToValue(int64(matchIndex)), false)
 	return match
 }
-
+// 执行正则表达式匹配
 func (r *regexpObject) execRegexp(target valueString) (match bool, result []int) {
 	lastIndex := int64(0)
 	if p := r.getStr("lastIndex"); p != nil {
@@ -331,7 +333,7 @@ func (r *regexpObject) execRegexp(target valueString) (match bool, result []int)
 	}
 	return
 }
-
+// 执行正则表达式匹配，并将结果转换为数组
 func (r *regexpObject) exec(target valueString) Value {
 	match, result := r.execRegexp(target)
 	if match {
@@ -344,7 +346,7 @@ func (r *regexpObject) test(target valueString) bool {
 	match, _ := r.execRegexp(target)
 	return match
 }
-
+// 克隆一个
 func (r *regexpObject) clone() *Object {
 	r1 := r.val.runtime.newRegexpObject(r.prototype)
 	r1.source = r.source
@@ -354,7 +356,7 @@ func (r *regexpObject) clone() *Object {
 	r1.multiline = r.multiline
 	return r1.val
 }
-
+// 初始化
 func (r *regexpObject) init() {
 	r.baseObject.init()
 	r._putProp("lastIndex", intToValue(0), true, false, false)

@@ -63,9 +63,9 @@ type objectImpl interface {
 }
 
 type baseObject struct {
-	class      string
+	class      string // 类名
 	val        *Object
-	prototype  *Object
+	prototype  *Object // 类属性对象
 	extensible bool
 
 	values    map[string]Value
@@ -76,11 +76,11 @@ type primitiveValueObject struct {
 	baseObject
 	pValue Value
 }
-
+// 获取数据值
 func (o *primitiveValueObject) export() interface{} {
 	return o.pValue.Export()
 }
-
+// 获取数据类型
 func (o *primitiveValueObject) exportType() reflect.Type {
 	return o.pValue.ExportType()
 }
@@ -94,29 +94,29 @@ type ConstructorCall struct {
 	This      *Object
 	Arguments []Value
 }
-
+// 获取idx位置的参数值
 func (f FunctionCall) Argument(idx int) Value {
 	if idx < len(f.Arguments) {
 		return f.Arguments[idx]
 	}
 	return _undefined
 }
-
+// 获取idx位置的参数值
 func (f ConstructorCall) Argument(idx int) Value {
 	if idx < len(f.Arguments) {
 		return f.Arguments[idx]
 	}
 	return _undefined
 }
-
+// 初始化map
 func (o *baseObject) init() {
 	o.values = make(map[string]Value)
 }
-
+// 获取类名
 func (o *baseObject) className() string {
 	return o.class
 }
-
+// 获取属性name的值
 func (o *baseObject) getPropStr(name string) Value {
 	if val := o.getOwnProp(name); val != nil {
 		return val
@@ -126,19 +126,19 @@ func (o *baseObject) getPropStr(name string) Value {
 	}
 	return nil
 }
-
+// 判断是否有属性n
 func (o *baseObject) getProp(n Value) Value {
 	return o.val.self.getPropStr(n.String())
 }
-
+// 判断是否有属性n
 func (o *baseObject) hasProperty(n Value) bool {
 	return o.val.self.getProp(n) != nil
 }
-
+// 判断是否有属性name
 func (o *baseObject) hasPropertyStr(name string) bool {
 	return o.val.self.getPropStr(name) != nil
 }
-
+// 获取name的值
 func (o *baseObject) _getStr(name string) Value {
 	p := o.getOwnProp(name)
 
@@ -152,7 +152,7 @@ func (o *baseObject) _getStr(name string) Value {
 
 	return p
 }
-
+// 获取name的值
 func (o *baseObject) getStr(name string) Value {
 	p := o.val.self.getPropStr(name)
 	if p, ok := p.(*valueProperty); ok {
@@ -161,11 +161,11 @@ func (o *baseObject) getStr(name string) Value {
 
 	return p
 }
-
+// 获取n的值
 func (o *baseObject) get(n Value) Value {
 	return o.getStr(n.String())
 }
-
+// 判断是否可删除
 func (o *baseObject) checkDeleteProp(name string, prop *valueProperty, throw bool) bool {
 	if !prop.configurable {
 		o.val.runtime.typeErrorResult(throw, "Cannot delete property '%s' of %s", name, o.val.ToString())
@@ -173,14 +173,14 @@ func (o *baseObject) checkDeleteProp(name string, prop *valueProperty, throw boo
 	}
 	return true
 }
-
+// 判断是否可删除
 func (o *baseObject) checkDelete(name string, val Value, throw bool) bool {
 	if val, ok := val.(*valueProperty); ok {
 		return o.checkDeleteProp(name, val, throw)
 	}
 	return true
 }
-
+// 删除属性name
 func (o *baseObject) _delete(name string) {
 	delete(o.values, name)
 	for i, n := range o.propNames {
@@ -191,7 +191,7 @@ func (o *baseObject) _delete(name string) {
 		}
 	}
 }
-
+// 删除属性name
 func (o *baseObject) deleteStr(name string, throw bool) bool {
 	if val, exists := o.values[name]; exists {
 		if !o.checkDelete(name, val, throw) {
@@ -202,15 +202,15 @@ func (o *baseObject) deleteStr(name string, throw bool) bool {
 	}
 	return true
 }
-
+// 删除属性name
 func (o *baseObject) delete(n Value, throw bool) bool {
 	return o.deleteStr(n.String(), throw)
 }
-
+// 设置属性name的值为val
 func (o *baseObject) put(n Value, val Value, throw bool) {
 	o.putStr(n.String(), val, throw)
 }
-
+// 获取属性name的值
 func (o *baseObject) getOwnProp(name string) Value {
 	v := o.values[name]
 	if v == nil && name == __proto__ {
@@ -218,7 +218,7 @@ func (o *baseObject) getOwnProp(name string) Value {
 	}
 	return v
 }
-
+// 设置属性name的值为val
 func (o *baseObject) putStr(name string, val Value, throw bool) {
 	if v, exists := o.values[name]; exists {
 		if prop, ok := v.(*valueProperty); ok {
@@ -275,17 +275,17 @@ func (o *baseObject) putStr(name string, val Value, throw bool) {
 	o.values[name] = val
 	o.propNames = append(o.propNames, name)
 }
-
+// 是否有属性n
 func (o *baseObject) hasOwnProperty(n Value) bool {
 	v := o.values[n.String()]
 	return v != nil
 }
-
+// 是否有属性n
 func (o *baseObject) hasOwnPropertyStr(name string) bool {
 	v := o.values[name]
 	return v != nil
 }
-
+// 添加一个属性
 func (o *baseObject) _defineOwnProperty(name, existingValue Value, descr propertyDescr, throw bool) (val Value, ok bool) {
 
 	getterObj, _ := descr.Getter.(*Object)
@@ -388,7 +388,7 @@ Reject:
 	return nil, false
 
 }
-
+// 添加一个属性
 func (o *baseObject) defineOwnProperty(n Value, descr propertyDescr, throw bool) bool {
 	name := n.String()
 	existingVal := o.values[name]
@@ -401,7 +401,7 @@ func (o *baseObject) defineOwnProperty(n Value, descr propertyDescr, throw bool)
 	}
 	return false
 }
-
+// 设置name的值为val
 func (o *baseObject) _put(name string, v Value) {
 	if _, exists := o.values[name]; !exists {
 		o.propNames = append(o.propNames, name)
@@ -409,7 +409,7 @@ func (o *baseObject) _put(name string, v Value) {
 
 	o.values[name] = v
 }
-
+// 设置name的值为val
 func (o *baseObject) _putProp(name string, value Value, writable, enumerable, configurable bool) Value {
 	if writable && enumerable && configurable {
 		o._put(name, value)
@@ -425,7 +425,7 @@ func (o *baseObject) _putProp(name string, value Value, writable, enumerable, co
 		return p
 	}
 }
-
+// 尝试调用函数methodName
 func (o *baseObject) tryPrimitive(methodName string) Value {
 	if method, ok := o.getStr(methodName).(*Object); ok {
 		if call, ok := method.self.assertCallable(); ok {
@@ -439,7 +439,7 @@ func (o *baseObject) tryPrimitive(methodName string) Value {
 	}
 	return nil
 }
-
+// 尝试转换为number
 func (o *baseObject) toPrimitiveNumber() Value {
 	if v := o.tryPrimitive("valueOf"); v != nil {
 		return v
@@ -452,7 +452,7 @@ func (o *baseObject) toPrimitiveNumber() Value {
 	o.val.runtime.typeErrorResult(true, "Could not convert %v to primitive", o)
 	return nil
 }
-
+// 尝试转换为string
 func (o *baseObject) toPrimitiveString() Value {
 	if v := o.tryPrimitive("toString"); v != nil {
 		return v
@@ -465,11 +465,11 @@ func (o *baseObject) toPrimitiveString() Value {
 	o.val.runtime.typeErrorResult(true, "Could not convert %v to primitive", o)
 	return nil
 }
-
+// 尝试转换为number
 func (o *baseObject) toPrimitive() Value {
 	return o.toPrimitiveNumber()
 }
-
+// 找不到对应的函数
 func (o *baseObject) assertCallable() (func(FunctionCall) Value, bool) {
 	return nil, false
 }
@@ -477,23 +477,23 @@ func (o *baseObject) assertCallable() (func(FunctionCall) Value, bool) {
 func (o *baseObject) proto() *Object {
 	return o.prototype
 }
-
+// 获得扩展属性
 func (o *baseObject) isExtensible() bool {
 	return o.extensible
 }
-
+// 禁止扩展
 func (o *baseObject) preventExtensions() {
 	o.extensible = false
 }
-
+// 获取length
 func (o *baseObject) sortLen() int64 {
 	return toLength(o.val.self.getStr("length"))
 }
-
+// 获取指定位置的值
 func (o *baseObject) sortGet(i int64) Value {
 	return o.val.self.get(intToValue(i))
 }
-
+// i，j位置数据互换
 func (o *baseObject) swap(i, j int64) {
 	ii := intToValue(i)
 	jj := intToValue(j)
@@ -504,7 +504,7 @@ func (o *baseObject) swap(i, j int64) {
 	o.val.self.put(ii, y, false)
 	o.val.self.put(jj, x, false)
 }
-
+// 枚举导出map的值
 func (o *baseObject) export() interface{} {
 	m := make(map[string]interface{})
 
@@ -521,7 +521,7 @@ func (o *baseObject) export() interface{} {
 	}
 	return m
 }
-
+// 返回map的类型
 func (o *baseObject) exportType() reflect.Type {
 	return reflectTypeMap
 }
@@ -552,7 +552,7 @@ type propFilterIter struct {
 	all     bool
 	seen    map[string]bool
 }
-
+// 遍历下一个
 func (i *propFilterIter) next() (propIterItem, iterNextFunc) {
 	for {
 		var item propIterItem
@@ -579,7 +579,7 @@ func (i *propFilterIter) next() (propIterItem, iterNextFunc) {
 		}
 	}
 }
-
+// 遍历下一个
 func (i *objectPropIter) next() (propIterItem, iterNextFunc) {
 	for i.idx < len(i.propNames) {
 		name := i.propNames[i.idx]
@@ -605,7 +605,8 @@ func (o *baseObject) _enumerate(recursive bool) iterNextFunc {
 		recursive: recursive,
 	}).next
 }
-
+//enumerate() 函数用于将一个可遍历的数据对象(如列表、元组或字符串)组合为一个索引序列，
+//同时列出数据和数据下标，一般用在 for 循环当中。
 func (o *baseObject) enumerate(all, recursive bool) iterNextFunc {
 	return (&propFilterIter{
 		wrapped: o._enumerate(recursive),
@@ -613,12 +614,12 @@ func (o *baseObject) enumerate(all, recursive bool) iterNextFunc {
 		seen:    make(map[string]bool),
 	}).next
 }
-
+// 比较是否相等
 func (o *baseObject) equal(other objectImpl) bool {
 	// Rely on parent reference comparison
 	return false
 }
-
+//用于判断某对象是否为某构造器的实例
 func (o *baseObject) hasInstance(v Value) bool {
 	o.val.runtime.typeErrorResult(true, "Expecting a function in instanceof check, but got %s", o.val.ToString())
 	panic("Unreachable")

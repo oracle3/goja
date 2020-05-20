@@ -28,7 +28,7 @@ type runeReaderReplace struct {
 var (
 	InvalidRuneError = errors.New("Invalid rune")
 )
-
+// 读取一个字符
 func (rr runeReaderReplace) ReadRune() (r rune, size int, err error) {
 	r, size, err = rr.wrapped.ReadRune()
 	if err == InvalidRuneError {
@@ -37,7 +37,8 @@ func (rr runeReaderReplace) ReadRune() (r rune, size int, err error) {
 	}
 	return
 }
-
+//DecodeRune返回代理项对的UTF-16解码。
+//如果该对不是有效的UTF-16代理项对，DecodeRune将返回Unicode替换码点U+FFFD。
 func (rr *unicodeRuneReader) ReadRune() (r rune, size int, err error) {
 	if rr.pos < len(rr.s) {
 		r = rune(rr.s[rr.pos])
@@ -64,44 +65,44 @@ func (rr *unicodeRuneReader) ReadRune() (r rune, size int, err error) {
 	}
 	return
 }
-
+// 读取start开始的字符串
 func (s unicodeString) reader(start int) io.RuneReader {
 	return &unicodeRuneReader{
 		s: s[start:],
 	}
 }
-
+// 转int就是0
 func (s unicodeString) ToInteger() int64 {
 	return 0
 }
-
+// 返回字符串
 func (s unicodeString) ToString() valueString {
 	return s
 }
-
+// 转float就是NaN
 func (s unicodeString) ToFloat() float64 {
 	return math.NaN()
 }
-
+// 不为空，就返回true
 func (s unicodeString) ToBoolean() bool {
 	return len(s) > 0
 }
-
+// 过滤空白
 func (s unicodeString) toTrimmedUTF8() string {
 	if len(s) == 0 {
 		return ""
 	}
 	return strings.Trim(s.String(), parser.WhitespaceChars)
 }
-
+// 字符串转数字，可能是int或float
 func (s unicodeString) ToNumber() Value {
 	return asciiString(s.toTrimmedUTF8()).ToNumber()
 }
-
+// 转对象
 func (s unicodeString) ToObject(r *Runtime) *Object {
 	return r._newString(s)
 }
-
+// 比较是否相等
 func (s unicodeString) equals(other unicodeString) bool {
 	if len(s) != len(other) {
 		return false
@@ -113,7 +114,7 @@ func (s unicodeString) equals(other unicodeString) bool {
 	}
 	return true
 }
-
+// 比较是否相等
 func (s unicodeString) SameAs(other Value) bool {
 	if otherStr, ok := other.(unicodeString); ok {
 		return s.equals(otherStr)
@@ -121,7 +122,7 @@ func (s unicodeString) SameAs(other Value) bool {
 
 	return false
 }
-
+// 比较是否相等
 func (s unicodeString) Equals(other Value) bool {
 	if s.SameAs(other) {
 		return true
@@ -144,38 +145,38 @@ func (s unicodeString) Equals(other Value) bool {
 	}
 	return false
 }
-
+// 比较是否相等
 func (s unicodeString) StrictEquals(other Value) bool {
 	return s.SameAs(other)
 }
-
+// 判断不是int
 func (s unicodeString) assertInt() (int64, bool) {
 	return 0, false
 }
-
+// 判断不是float
 func (s unicodeString) assertFloat() (float64, bool) {
 	return 0, false
 }
-
+// 返回string
 func (s unicodeString) assertString() (valueString, bool) {
 	return s, true
 }
-
+// 返回string对象
 func (s unicodeString) baseObject(r *Runtime) *Object {
 	ss := r.stringSingleton
 	ss.value = s
 	ss.setLength()
 	return ss.val
 }
-
+// 返回指定位置的字符
 func (s unicodeString) charAt(idx int64) rune {
 	return rune(s[idx])
 }
-
+// 返回字符串长度
 func (s unicodeString) length() int64 {
 	return int64(len(s))
 }
-
+// 合并两个字符串
 func (s unicodeString) concat(other valueString) valueString {
 	switch other := other.(type) {
 	case unicodeString:
@@ -192,7 +193,7 @@ func (s unicodeString) concat(other valueString) valueString {
 		panic(fmt.Errorf("Unknown string type: %T", other))
 	}
 }
-
+// 构造star和end间的子串
 func (s unicodeString) substring(start, end int64) valueString {
 	ss := s[start:end]
 	for _, c := range ss {
@@ -206,15 +207,15 @@ func (s unicodeString) substring(start, end int64) valueString {
 	}
 	return asciiString(as)
 }
-
+// 返回utf16编码的字符串
 func (s unicodeString) String() string {
 	return string(utf16.Decode(s))
 }
-
+// 比较两个字符串
 func (s unicodeString) compareTo(other valueString) int {
 	return strings.Compare(s.String(), other.String())
 }
-
+//Index返回s中substr的第一个实例的索引，如果s中不存在substr，则返回-1。
 func (s unicodeString) index(substr valueString, start int64) int64 {
 	var ss []uint16
 	switch substr := substr.(type) {
@@ -244,7 +245,7 @@ func (s unicodeString) index(substr valueString, start int64) int64 {
 	}
 	return -1
 }
-
+//LastIndex返回s中substr的最后一个实例的索引，如果s中不存在substr，则返回-1。
 func (s unicodeString) lastIndex(substr valueString, start int64) int64 {
 	var ss []uint16
 	switch substr := substr.(type) {
@@ -276,7 +277,7 @@ func (s unicodeString) lastIndex(substr valueString, start int64) int64 {
 	}
 	return -1
 }
-
+// 转小写
 func (s unicodeString) toLower() valueString {
 	caser := cases.Lower(language.Und)
 	r := []rune(caser.String(s.String()))
@@ -299,16 +300,16 @@ func (s unicodeString) toLower() valueString {
 	}
 	return unicodeString(utf16.Encode(r))
 }
-
+// 转大写
 func (s unicodeString) toUpper() valueString {
 	caser := cases.Upper(language.Und)
 	return newStringValue(caser.String(s.String()))
 }
-
+// 导出字符串
 func (s unicodeString) Export() interface{} {
 	return s.String()
 }
-
+// 导出字符串类型
 func (s unicodeString) ExportType() reflect.Type {
 	return reflectTypeString
 }

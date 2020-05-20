@@ -1,7 +1,7 @@
 package goja
 
 import "testing"
-
+//测试SrcFile
 func TestPosition(t *testing.T) {
 	const SRC = `line1
 line2
@@ -32,7 +32,7 @@ line3`
 		}
 	}
 }
-
+//测试SrcFile并发性
 func TestSrcFileConcurrency(t *testing.T) {
 	const SRC = `line1
 line2

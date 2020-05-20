@@ -43,7 +43,8 @@ func (r *Runtime) arrayBufferProto_getByteLength(call FunctionCall) Value {
 	r.typeErrorResult(true, "Object is not ArrayBuffer: %s", o)
 	panic("unreachable")
 }
-
+//ArrayBuffer.prototype.slice()
+//slice()方法返回一个新的 ArrayBuffer ，它的内容是这个ArrayBuffer的字节副本，从begin（包括），到end（不包括）
 func (r *Runtime) arrayBufferProto_slice(call FunctionCall) Value {
 	o := r.toObject(call.This)
 	if b, ok := o.self.(*objectArrayBuffer); ok {
@@ -84,7 +85,7 @@ func (r *Runtime) arrayBufferProto_slice(call FunctionCall) Value {
 	r.typeErrorResult(true, "Object is not ArrayBuffer: %s", o)
 	panic("unreachable")
 }
-
+// 注入ArrayBuffer类
 func (r *Runtime) createArrayBufferProto(val *Object) objectImpl {
 	b := r._newArrayBuffer(r.global.Object, val)
 	byteLengthProp := &valueProperty{

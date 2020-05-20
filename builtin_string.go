@@ -31,7 +31,7 @@ func (r *Runtime) builtin_String(call FunctionCall) Value {
 		return newStringValue("")
 	}
 }
-
+// 构造一个字符串对象
 func (r *Runtime) _newString(s valueString) *Object {
 	v := &Object{runtime: r}
 

@@ -15,7 +15,7 @@ type asciiRuneReader struct {
 	s   asciiString
 	pos int
 }
-
+// 读取一个字符，转了int32
 func (rr *asciiRuneReader) ReadRune() (r rune, size int, err error) {
 	if rr.pos < len(rr.s) {
 		r = rune(rr.s[rr.pos])
@@ -26,14 +26,14 @@ func (rr *asciiRuneReader) ReadRune() (r rune, size int, err error) {
 	}
 	return
 }
-
+// 从start切片构造一个string
 func (s asciiString) reader(start int) io.RuneReader {
 	return &asciiRuneReader{
 		s: s[start:],
 	}
 }
 
-// ss must be trimmed
+// ss must be trimmed 字符串转int
 func strToInt(ss string) (int64, error) {
 	if ss == "" {
 		return 0, nil
@@ -56,18 +56,18 @@ func strToInt(ss string) (int64, error) {
 	}
 	return strconv.ParseInt(ss, 10, 64)
 }
-
+//字符串转int
 func (s asciiString) _toInt() (int64, error) {
 	return strToInt(strings.TrimSpace(string(s)))
 }
-
+// 检查是否存在范围错误
 func isRangeErr(err error) bool {
 	if err, ok := err.(*strconv.NumError); ok {
 		return err.Err == strconv.ErrRange
 	}
 	return false
 }
-
+// 字符串转float
 func (s asciiString) _toFloat() (float64, error) {
 	ss := strings.TrimSpace(string(s))
 	if ss == "" {
@@ -83,7 +83,7 @@ func (s asciiString) _toFloat() (float64, error) {
 	}
 	return f, err
 }
-
+// 字符串转int64
 func (s asciiString) ToInteger() int64 {
 	if s == "" {
 		return 0
@@ -103,15 +103,15 @@ func (s asciiString) ToInteger() int64 {
 	}
 	return i
 }
-
+// 字符串返回
 func (s asciiString) ToString() valueString {
 	return s
 }
-
+// 字符串返回
 func (s asciiString) String() string {
 	return string(s)
 }
-
+// 字符串转float
 func (s asciiString) ToFloat() float64 {
 	if s == "" {
 		return 0
@@ -132,11 +132,11 @@ func (s asciiString) ToFloat() float64 {
 	}
 	return f
 }
-
+// 字符串不为空就是true
 func (s asciiString) ToBoolean() bool {
 	return s != ""
 }
-
+// 字符串转数字，可能是int或float
 func (s asciiString) ToNumber() Value {
 	if s == "" {
 		return intToValue(0)
@@ -158,18 +158,18 @@ func (s asciiString) ToNumber() Value {
 
 	return _NaN
 }
-
+// 字符串转对象
 func (s asciiString) ToObject(r *Runtime) *Object {
 	return r._newString(s)
 }
-
+// 比较字符串是否相等
 func (s asciiString) SameAs(other Value) bool {
 	if otherStr, ok := other.(asciiString); ok {
 		return s == otherStr
 	}
 	return false
 }
-
+// 比较字符串是否相等
 func (s asciiString) Equals(other Value) bool {
 	if o, ok := other.(asciiString); ok {
 		return s == o
@@ -198,41 +198,41 @@ func (s asciiString) Equals(other Value) bool {
 	}
 	return false
 }
-
+// 比较字符串是否相等
 func (s asciiString) StrictEquals(other Value) bool {
 	if otherStr, ok := other.(asciiString); ok {
 		return s == otherStr
 	}
 	return false
 }
-
+// 字符串不是整数
 func (s asciiString) assertInt() (int64, bool) {
 	return 0, false
 }
-
+// 字符串不是float
 func (s asciiString) assertFloat() (float64, bool) {
 	return 0, false
 }
-
+// 字符串是字符串
 func (s asciiString) assertString() (valueString, bool) {
 	return s, true
 }
-
+// 返回对应的对象
 func (s asciiString) baseObject(r *Runtime) *Object {
 	ss := r.stringSingleton
 	ss.value = s
 	ss.setLength()
 	return ss.val
 }
-
+// 返回idx位置的字符
 func (s asciiString) charAt(idx int64) rune {
 	return rune(s[idx])
 }
-
+// 返回字符串长度
 func (s asciiString) length() int64 {
 	return int64(len(s))
 }
-
+// 拼接两个字符串
 func (s asciiString) concat(other valueString) valueString {
 	switch other := other.(type) {
 	case asciiString:
@@ -252,11 +252,11 @@ func (s asciiString) concat(other valueString) valueString {
 		panic(fmt.Errorf("Unknown string type: %T", other))
 	}
 }
-
+// 截取字符串
 func (s asciiString) substring(start, end int64) valueString {
 	return asciiString(s[start:end])
 }
-
+// 比较字符串
 func (s asciiString) compareTo(other valueString) int {
 	switch other := other.(type) {
 	case asciiString:
@@ -267,7 +267,7 @@ func (s asciiString) compareTo(other valueString) int {
 		panic(fmt.Errorf("Unknown string type: %T", other))
 	}
 }
-
+//Index返回s中substr的第一个实例的索引，如果s中不存在substr，则返回-1。
 func (s asciiString) index(substr valueString, start int64) int64 {
 	if substr, ok := substr.(asciiString); ok {
 		p := int64(strings.Index(string(s[start:]), string(substr)))
@@ -277,7 +277,7 @@ func (s asciiString) index(substr valueString, start int64) int64 {
 	}
 	return -1
 }
-
+//LastIndex返回s中substr的最后一个实例的索引，如果s中不存在substr，则返回-1。
 func (s asciiString) lastIndex(substr valueString, pos int64) int64 {
 	if substr, ok := substr.(asciiString); ok {
 		end := pos + int64(len(substr))
@@ -291,23 +291,23 @@ func (s asciiString) lastIndex(substr valueString, pos int64) int64 {
 	}
 	return -1
 }
-
+// 转小写
 func (s asciiString) toLower() valueString {
 	return asciiString(strings.ToLower(string(s)))
 }
-
+// 转大写
 func (s asciiString) toUpper() valueString {
 	return asciiString(strings.ToUpper(string(s)))
 }
-
+// 过滤空格
 func (s asciiString) toTrimmedUTF8() string {
 	return strings.TrimSpace(string(s))
 }
-
+// 导出字符串
 func (s asciiString) Export() interface{} {
 	return string(s)
 }
-
+// 导出字符串类型
 func (s asciiString) ExportType() reflect.Type {
 	return reflectTypeString
 }

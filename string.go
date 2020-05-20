@@ -65,11 +65,11 @@ type stringObject struct {
 	length     int64
 	lengthProp valueProperty
 }
-
+// 构造一个Unicode字符串
 func newUnicodeString(s string) valueString {
 	return unicodeString(utf16.Encode([]rune(s)))
 }
-
+// 构造一个字符串，可能是Unicode或asc格式
 func newStringValue(s string) valueString {
 	for _, chr := range s {
 		if chr >= utf8.RuneSelf {
@@ -78,12 +78,12 @@ func newStringValue(s string) valueString {
 	}
 	return asciiString(s)
 }
-
+// 字符串对象初始化
 func (s *stringObject) init() {
 	s.baseObject.init()
 	s.setLength()
 }
-
+// 设置长度属性
 func (s *stringObject) setLength() {
 	if s.value != nil {
 		s.length = s.value.length()
@@ -91,35 +91,35 @@ func (s *stringObject) setLength() {
 	s.lengthProp.value = intToValue(s.length)
 	s._put("length", &s.lengthProp)
 }
-
+// 获取指定位置的字符
 func (s *stringObject) get(n Value) Value {
 	if idx := toIdx(n); idx >= 0 && idx < s.length {
 		return s.getIdx(idx)
 	}
 	return s.baseObject.get(n)
 }
-
+// 获取指定位置的字符
 func (s *stringObject) getStr(name string) Value {
 	if i := strToIdx(name); i >= 0 && i < s.length {
 		return s.getIdx(i)
 	}
 	return s.baseObject.getStr(name)
 }
-
+// 获取指定位置的字符或者属性
 func (s *stringObject) getPropStr(name string) Value {
 	if i := strToIdx(name); i >= 0 && i < s.length {
 		return s.getIdx(i)
 	}
 	return s.baseObject.getPropStr(name)
 }
-
+// 获取指定位置的字符或者属性
 func (s *stringObject) getProp(n Value) Value {
 	if i := toIdx(n); i >= 0 && i < s.length {
 		return s.getIdx(i)
 	}
 	return s.baseObject.getProp(n)
 }
-
+// 获取指定位置的字符或者属性
 func (s *stringObject) getOwnProp(name string) Value {
 	if i := strToIdx(name); i >= 0 && i < s.length {
 		val := s.getIdx(i)
@@ -131,11 +131,11 @@ func (s *stringObject) getOwnProp(name string) Value {
 
 	return s.baseObject.getOwnProp(name)
 }
-
+// 获取指定位置的字符
 func (s *stringObject) getIdx(idx int64) Value {
 	return s.value.substring(idx, idx+1)
 }
-
+// 对字符串put会异常
 func (s *stringObject) put(n Value, val Value, throw bool) {
 	if i := toIdx(n); i >= 0 && i < s.length {
 		s.val.runtime.typeErrorResult(throw, "Cannot assign to read only property '%d' of a String", i)
@@ -144,7 +144,7 @@ func (s *stringObject) put(n Value, val Value, throw bool) {
 
 	s.baseObject.put(n, val, throw)
 }
-
+// 对字符串put会异常
 func (s *stringObject) putStr(name string, val Value, throw bool) {
 	if i := strToIdx(name); i >= 0 && i < s.length {
 		s.val.runtime.typeErrorResult(throw, "Cannot assign to read only property '%d' of a String", i)
@@ -153,7 +153,7 @@ func (s *stringObject) putStr(name string, val Value, throw bool) {
 
 	s.baseObject.putStr(name, val, throw)
 }
-
+// 对字符串定义属性会异常
 func (s *stringObject) defineOwnProperty(n Value, descr propertyDescr, throw bool) bool {
 	if i := toIdx(n); i >= 0 && i < s.length {
 		s.val.runtime.typeErrorResult(throw, "Cannot redefine property: %d", i)
@@ -169,7 +169,7 @@ type stringPropIter struct {
 	idx, length int64
 	recursive   bool
 }
-
+// 获取下一个
 func (i *stringPropIter) next() (propIterItem, iterNextFunc) {
 	if i.idx < i.length {
 		name := strconv.FormatInt(i.idx, 10)
@@ -188,7 +188,7 @@ func (s *stringObject) _enumerate(recursive bool) iterNextFunc {
 		recursive: recursive,
 	}).next
 }
-
+// 构造枚举循环
 func (s *stringObject) enumerate(all, recursive bool) iterNextFunc {
 	return (&propFilterIter{
 		wrapped: s._enumerate(recursive),
@@ -196,7 +196,7 @@ func (s *stringObject) enumerate(all, recursive bool) iterNextFunc {
 		seen:    make(map[string]bool),
 	}).next
 }
-
+// 不允许删除字符串
 func (s *stringObject) deleteStr(name string, throw bool) bool {
 	if i := strToIdx(name); i >= 0 && i < s.length {
 		s.val.runtime.typeErrorResult(throw, "Cannot delete property '%d' of a String", i)
@@ -205,7 +205,7 @@ func (s *stringObject) deleteStr(name string, throw bool) bool {
 
 	return s.baseObject.deleteStr(name, throw)
 }
-
+// 不允许删除字符串
 func (s *stringObject) delete(n Value, throw bool) bool {
 	if i := toIdx(n); i >= 0 && i < s.length {
 		s.val.runtime.typeErrorResult(throw, "Cannot delete property '%d' of a String", i)
@@ -214,14 +214,14 @@ func (s *stringObject) delete(n Value, throw bool) bool {
 
 	return s.baseObject.delete(n, throw)
 }
-
+// 获取指定位置的属性都是true
 func (s *stringObject) hasOwnProperty(n Value) bool {
 	if i := toIdx(n); i >= 0 && i < s.length {
 		return true
 	}
 	return s.baseObject.hasOwnProperty(n)
 }
-
+// 获取指定位置的属性都是true
 func (s *stringObject) hasOwnPropertyStr(name string) bool {
 	if i := strToIdx(name); i >= 0 && i < s.length {
 		return true

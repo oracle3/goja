@@ -277,7 +277,7 @@ func (r *Runtime) init() {
 		accessor:   true,
 	}
 }
-
+// 异常退出
 func (r *Runtime) typeErrorResult(throw bool, args ...interface{}) {
 	if throw {
 		panic(r.NewTypeError(args...))
@@ -698,7 +698,7 @@ func (r *Runtime) checkObjectCoercible(v Value) {
 		r.typeErrorResult(true, "Value is not object coercible")
 	}
 }
-
+// 转换为uint32
 func toUInt32(v Value) uint32 {
 	v = v.ToNumber()
 	if i, ok := v.assertInt(); ok {
@@ -712,7 +712,7 @@ func toUInt32(v Value) uint32 {
 	}
 	return 0
 }
-
+// 转换为uint16
 func toUInt16(v Value) uint16 {
 	v = v.ToNumber()
 	if i, ok := v.assertInt(); ok {
@@ -726,7 +726,7 @@ func toUInt16(v Value) uint16 {
 	}
 	return 0
 }
-
+// 转换为int64
 func toLength(v Value) int64 {
 	if v == nil {
 		return 0
@@ -740,7 +740,7 @@ func toLength(v Value) int64 {
 	}
 	return i
 }
-
+// 转换为int32
 func toInt32(v Value) int32 {
 	v = v.ToNumber()
 	if i, ok := v.assertInt(); ok {
@@ -754,7 +754,7 @@ func toInt32(v Value) int32 {
 	}
 	return 0
 }
-
+// 转换为bool
 func (r *Runtime) toBoolean(b bool) Value {
 	if b {
 		return valueTrue
@@ -1213,7 +1213,7 @@ func (r *Runtime) wrapReflectFunc(value reflect.Value) func(FunctionCall) Value 
 		}
 	}
 }
-
+// 获取v对应类型typ的值
 func (r *Runtime) toReflectValue(v Value, typ reflect.Type) (reflect.Value, error) {
 	switch typ.Kind() {
 	case reflect.String:

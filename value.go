@@ -72,8 +72,8 @@ type memberUnresolved struct {
 
 type valueProperty struct {
 	value        Value
-	writable     bool
-	configurable bool
+	writable     bool // 可写
+	configurable bool // 可删除
 	enumerable   bool
 	accessor     bool
 	getterFunc   *Object
@@ -113,7 +113,7 @@ func (i valueInt) ToInteger() int64 {
 func (i valueInt) ToString() valueString {
 	return asciiString(i.String())
 }
-
+// 转10进制字符串
 func (i valueInt) String() string {
 	return strconv.FormatInt(int64(i), 10)
 }

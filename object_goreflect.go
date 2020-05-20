@@ -8,26 +8,33 @@ import (
 
 // JsonEncodable allows custom JSON encoding by JSON.stringify()
 // Note that if the returned value itself also implements JsonEncodable, it won't have any effect.
+// JsonEncodable允许通过JSON.stringify（）自定义JSON编码
+//请注意，如果返回值本身也实现JsonEncodable，则不会产生任何效果。
 type JsonEncodable interface {
 	JsonEncodable() interface{}
 }
 
 // FieldNameMapper provides custom mapping between Go and JavaScript property names.
+// FieldNameMapper提供Go和JavaScript属性名称之间的自定义映射。
 type FieldNameMapper interface {
 	// FieldName returns a JavaScript name for the given struct field in the given type.
 	// If this method returns "" the field becomes hidden.
+	// FieldName返回给定类型的给定结构字段的JavaScript名称。
+	//如果此方法返回“”，则该字段变为隐藏。
 	FieldName(t reflect.Type, f reflect.StructField) string
 
 	// MethodName returns a JavaScript name for the given method in the given type.
 	// If this method returns "" the method becomes hidden.
+	// MethodName返回给定类型的给定方法的JavaScript名称。
+	//如果此方法返回“”，则该方法变为隐藏状态。
 	MethodName(t reflect.Type, m reflect.Method) string
 }
-
+//反映领域信息
 type reflectFieldInfo struct {
 	Index     []int
 	Anonymous bool
 }
-
+//反映类型信息
 type reflectTypeInfo struct {
 	Fields                  map[string]reflectFieldInfo
 	Methods                 map[string]int
@@ -42,7 +49,7 @@ type objectGoReflect struct {
 
 	toJson func() interface{}
 }
-
+// 初始化
 func (o *objectGoReflect) init() {
 	o.baseObject.init()
 	switch o.value.Kind() {
@@ -73,19 +80,19 @@ func (o *objectGoReflect) init() {
 		o.toJson = j.JsonEncodable
 	}
 }
-
+// tostring实现
 func (o *objectGoReflect) toStringFunc(call FunctionCall) Value {
 	return o.toPrimitiveString()
 }
-
+// valueof实现
 func (o *objectGoReflect) valueOfFunc(call FunctionCall) Value {
 	return o.toPrimitive()
 }
-
+// 如果是结构，就返回对应字段，否则返回对应函数
 func (o *objectGoReflect) get(n Value) Value {
 	return o.getStr(n.String())
 }
-
+// 返回jsName字段的值
 func (o *objectGoReflect) _getField(jsName string) reflect.Value {
 	if info, exists := o.valueTypeInfo.Fields[jsName]; exists {
 		v := o.value.FieldByIndex(info.Index)
@@ -94,7 +101,7 @@ func (o *objectGoReflect) _getField(jsName string) reflect.Value {
 
 	return reflect.Value{}
 }
-
+// 返回jsName对应的函数
 func (o *objectGoReflect) _getMethod(jsName string) reflect.Value {
 	if idx, exists := o.origValueTypeInfo.Methods[jsName]; exists {
 		return o.origValue.Method(idx)
@@ -102,7 +109,7 @@ func (o *objectGoReflect) _getMethod(jsName string) reflect.Value {
 
 	return reflect.Value{}
 }
-
+// 如果是结构，就返回对应字段，否则返回对应函数
 func (o *objectGoReflect) _get(name string) Value {
 	if o.value.Kind() == reflect.Struct {
 		if v := o._getField(name); v.IsValid() {
@@ -116,14 +123,14 @@ func (o *objectGoReflect) _get(name string) Value {
 
 	return nil
 }
-
+// 如果是结构，就返回对应字段，否则返回对应函数
 func (o *objectGoReflect) getStr(name string) Value {
 	if v := o._get(name); v != nil {
 		return v
 	}
 	return o.baseObject._getStr(name)
 }
-
+// 如果是结构，就返回对应字段，否则返回对应函数
 func (o *objectGoReflect) getProp(n Value) Value {
 	name := n.String()
 	if p := o.getOwnProp(name); p != nil {
@@ -131,14 +138,14 @@ func (o *objectGoReflect) getProp(n Value) Value {
 	}
 	return o.baseObject.getOwnProp(name)
 }
-
+// 如果是结构，就返回对应字段，否则返回对应函数
 func (o *objectGoReflect) getPropStr(name string) Value {
 	if v := o.getOwnProp(name); v != nil {
 		return v
 	}
 	return o.baseObject.getPropStr(name)
 }
-
+// 如果是结构，就返回对应字段，否则返回对应函数
 func (o *objectGoReflect) getOwnProp(name string) Value {
 	if o.value.Kind() == reflect.Struct {
 		if v := o._getField(name); v.IsValid() {
@@ -163,17 +170,17 @@ func (o *objectGoReflect) getOwnProp(name string) Value {
 
 	return nil
 }
-
+// 设置name的值为val
 func (o *objectGoReflect) put(n Value, val Value, throw bool) {
 	o.putStr(n.String(), val, throw)
 }
-
+// 设置name的值为val
 func (o *objectGoReflect) putStr(name string, val Value, throw bool) {
 	if !o._put(name, val, throw) {
 		o.val.runtime.typeErrorResult(throw, "Cannot assign to property %s of a host object", name)
 	}
 }
-
+// 设置name的值为val
 func (o *objectGoReflect) _put(name string, val Value, throw bool) bool {
 	if o.value.Kind() == reflect.Struct {
 		if v := o._getField(name); v.IsValid() {
@@ -192,14 +199,14 @@ func (o *objectGoReflect) _put(name string, val Value, throw bool) bool {
 	}
 	return false
 }
-
+// 设置name的值为val
 func (o *objectGoReflect) _putProp(name string, value Value, writable, enumerable, configurable bool) Value {
 	if o._put(name, value, false) {
 		return value
 	}
 	return o.baseObject._putProp(name, value, writable, enumerable, configurable)
 }
-
+//检查主体对象属性描述，要求不能有get，set，还要可写，不可删除
 func (r *Runtime) checkHostObjectPropertyDescr(name string, descr propertyDescr, throw bool) bool {
 	if descr.Getter != nil || descr.Setter != nil {
 		r.typeErrorResult(throw, "Host objects do not support accessor properties")
@@ -215,7 +222,7 @@ func (r *Runtime) checkHostObjectPropertyDescr(name string, descr propertyDescr,
 	}
 	return true
 }
-
+// 添加属性n
 func (o *objectGoReflect) defineOwnProperty(n Value, descr propertyDescr, throw bool) bool {
 	if o.value.Kind() == reflect.Struct {
 		name := n.String()
@@ -239,7 +246,7 @@ func (o *objectGoReflect) defineOwnProperty(n Value, descr propertyDescr, throw 
 
 	return o.baseObject.defineOwnProperty(n, descr, throw)
 }
-
+// 检查是否有属性name或函数name
 func (o *objectGoReflect) _has(name string) bool {
 	if o.value.Kind() == reflect.Struct {
 		if v := o._getField(name); v.IsValid() {
@@ -251,7 +258,7 @@ func (o *objectGoReflect) _has(name string) bool {
 	}
 	return false
 }
-
+// 检查是否有属性name或函数name
 func (o *objectGoReflect) hasProperty(n Value) bool {
 	name := n.String()
 	if o._has(name) {
@@ -259,22 +266,22 @@ func (o *objectGoReflect) hasProperty(n Value) bool {
 	}
 	return o.baseObject.hasProperty(n)
 }
-
+// 检查是否有属性name或函数name
 func (o *objectGoReflect) hasPropertyStr(name string) bool {
 	if o._has(name) {
 		return true
 	}
 	return o.baseObject.hasPropertyStr(name)
 }
-
+// 检查是否有属性name或函数name
 func (o *objectGoReflect) hasOwnProperty(n Value) bool {
 	return o._has(n.String())
 }
-
+// 检查是否有属性name或函数name
 func (o *objectGoReflect) hasOwnPropertyStr(name string) bool {
 	return o._has(name)
 }
-
+// 转换为number
 func (o *objectGoReflect) _toNumber() Value {
 	switch o.value.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
@@ -292,7 +299,7 @@ func (o *objectGoReflect) _toNumber() Value {
 	}
 	return nil
 }
-
+// 转换为string
 func (o *objectGoReflect) _toString() Value {
 	switch o.value.Kind() {
 	case reflect.String:
@@ -310,28 +317,28 @@ func (o *objectGoReflect) _toString() Value {
 	}
 	return stringObjectObject
 }
-
+// 转换为number
 func (o *objectGoReflect) toPrimitiveNumber() Value {
 	if v := o._toNumber(); v != nil {
 		return v
 	}
 	return o._toString()
 }
-
+// 转换为string
 func (o *objectGoReflect) toPrimitiveString() Value {
 	if v := o._toNumber(); v != nil {
 		return v.ToString()
 	}
 	return o._toString()
 }
-
+// 尝试转换为number，不行就转换为string
 func (o *objectGoReflect) toPrimitive() Value {
 	if o.prototype == o.val.runtime.global.NumberPrototype {
 		return o.toPrimitiveNumber()
 	}
 	return o.toPrimitiveString()
 }
-
+// 删除属性name
 func (o *objectGoReflect) deleteStr(name string, throw bool) bool {
 	if o._has(name) {
 		o.val.runtime.typeErrorResult(throw, "Cannot delete property %s from a Go type")
@@ -339,7 +346,7 @@ func (o *objectGoReflect) deleteStr(name string, throw bool) bool {
 	}
 	return o.baseObject.deleteStr(name, throw)
 }
-
+// 删除属性name
 func (o *objectGoReflect) delete(name Value, throw bool) bool {
 	return o.deleteStr(name.String(), throw)
 }
@@ -349,7 +356,7 @@ type goreflectPropIter struct {
 	idx       int
 	recursive bool
 }
-
+// 获取下一个属性
 func (i *goreflectPropIter) nextField() (propIterItem, iterNextFunc) {
 	names := i.o.valueTypeInfo.FieldNames
 	if i.idx < len(names) {
@@ -361,7 +368,7 @@ func (i *goreflectPropIter) nextField() (propIterItem, iterNextFunc) {
 	i.idx = 0
 	return i.nextMethod()
 }
-
+// 获取下一个函数
 func (i *goreflectPropIter) nextMethod() (propIterItem, iterNextFunc) {
 	names := i.o.origValueTypeInfo.MethodNames
 	if i.idx < len(names) {
@@ -387,7 +394,7 @@ func (o *objectGoReflect) _enumerate(recursive bool) iterNextFunc {
 	}
 	return r.nextMethod
 }
-
+// 构造枚举迭代
 func (o *objectGoReflect) enumerate(all, recursive bool) iterNextFunc {
 	return (&propFilterIter{
 		wrapped: o._enumerate(recursive),
@@ -403,19 +410,20 @@ func (o *objectGoReflect) export() interface{} {
 func (o *objectGoReflect) exportType() reflect.Type {
 	return o.origValue.Type()
 }
-
+// 判断是否相等
 func (o *objectGoReflect) equal(other objectImpl) bool {
 	if other, ok := other.(*objectGoReflect); ok {
 		return o.value.Interface() == other.value.Interface()
 	}
 	return false
 }
-
+// 将结构体t的各个字段解析后放在info里面
 func (r *Runtime) buildFieldInfo(t reflect.Type, index []int, info *reflectTypeInfo) {
-	n := t.NumField()
+	n := t.NumField() // 结构体字段个数
 	for i := 0; i < n; i++ {
-		field := t.Field(i)
+		field := t.Field(i) // 结构体第i个字段
 		name := field.Name
+		// 确保是大写字母开头
 		if !ast.IsExported(name) {
 			continue
 		}
@@ -425,7 +433,7 @@ func (r *Runtime) buildFieldInfo(t reflect.Type, index []int, info *reflectTypeI
 
 		if name != "" {
 			if inf, exists := info.Fields[name]; !exists {
-				info.FieldNames = append(info.FieldNames, name)
+				info.FieldNames = append(info.FieldNames, name) // 把字段名追加到info中
 			} else {
 				if len(inf.Index) <= len(index) {
 					continue
@@ -456,7 +464,7 @@ func (r *Runtime) buildFieldInfo(t reflect.Type, index []int, info *reflectTypeI
 		}
 	}
 }
-
+// 把结构体t的字段和函数解析放入info中
 func (r *Runtime) buildTypeInfo(t reflect.Type) (info *reflectTypeInfo) {
 	info = new(reflectTypeInfo)
 	if t.Kind() == reflect.Struct {
@@ -490,7 +498,7 @@ func (r *Runtime) buildTypeInfo(t reflect.Type) (info *reflectTypeInfo) {
 	}
 	return
 }
-
+// 把结构体t的字段和函数解析放入info中，如果有缓存就不需要做
 func (r *Runtime) typeInfo(t reflect.Type) (info *reflectTypeInfo) {
 	var exists bool
 	if info, exists = r.typeInfoCache[t]; !exists {
@@ -508,6 +516,8 @@ func (r *Runtime) typeInfo(t reflect.Type) (info *reflectTypeInfo) {
 // the mapping for any given value is fixed at the point of creation.
 // Setting this to nil restores the default behaviour which is all exported fields and methods are mapped to their
 // original unchanged names.
+// SetFieldNameMapper为Go类型设置自定义字段名称映射器。 可以随时调用它，但是任何给定值的映射在创建时都是固定的。
+// 将其设置为nil将恢复默认行为，即所有导出的字段和方法都映射到其原始未更改名称。
 func (r *Runtime) SetFieldNameMapper(mapper FieldNameMapper) {
 	r.fieldNameMapper = mapper
 	r.typeInfoCache = nil

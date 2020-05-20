@@ -29,7 +29,7 @@ func NewSrcFile(name, src string, sourceMap *sourcemap.Consumer) *SrcFile {
 		sourceMap: sourceMap,
 	}
 }
-
+// 获取offset所在的行数和列数
 func (f *SrcFile) Position(offset int) Position {
 	var line int
 	var lineOffsets []int
@@ -66,7 +66,7 @@ func (f *SrcFile) Position(offset int) Position {
 		Col:  col,
 	}
 }
-
+// 指针移到offset位置，并计算行数
 func (f *SrcFile) scanTo(offset int) int {
 	o := f.lastScannedOffset
 	for o < offset {
@@ -86,7 +86,7 @@ func (f *SrcFile) scanTo(offset int) int {
 
 	return len(f.lineOffsets) - 2
 }
-
+// 输出行列数
 func (p Position) String() string {
 	return fmt.Sprintf("%d:%d", p.Line, p.Col)
 }
