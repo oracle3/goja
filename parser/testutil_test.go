@@ -8,7 +8,7 @@ import (
 )
 
 // Quick and dirty replacement for terst
-
+// 调用函数f()，并捕获异常，打印信息
 func tt(t *testing.T, f func()) {
 	defer func() {
 		if x := recover(); x != nil {
@@ -19,7 +19,7 @@ func tt(t *testing.T, f func()) {
 
 	f()
 }
-
+// 判断a，b转换为字符串后是否相等
 func is(a, b interface{}) {
 	as := fmt.Sprintf("%v", a)
 	bs := fmt.Sprintf("%v", b)

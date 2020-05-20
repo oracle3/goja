@@ -1416,6 +1416,8 @@ func (r *Runtime) wrapJSFunc(fn Callable, typ reflect.Type) func(args []reflect.
 
 // ExportTo converts a JavaScript value into the specified Go value. The second parameter must be a non-nil pointer.
 // Returns error if conversion is not possible.
+//ExportTo将JavaScript值转换为指定的Go值。第二个参数必须是非nil指针。
+//如果无法转换，则返回错误。
 func (r *Runtime) ExportTo(v Value, target interface{}) error {
 	tval := reflect.ValueOf(target)
 	if tval.Kind() != reflect.Ptr || tval.IsNil() {
@@ -1430,33 +1432,41 @@ func (r *Runtime) ExportTo(v Value, target interface{}) error {
 }
 
 // GlobalObject returns the global object.
+//GlobalObject返回全局对象。
 func (r *Runtime) GlobalObject() *Object {
 	return r.globalObject
 }
 
 // Set the specified value as a property of the global object.
 // The value is first converted using ToValue()
+//将指定值设置为全局对象的属性。
+//首先使用ToValue（）转换值
 func (r *Runtime) Set(name string, value interface{}) {
 	r.globalObject.self.putStr(name, r.ToValue(value), false)
 }
 
 // Get the specified property of the global object.
+//获取全局对象的指定属性。
 func (r *Runtime) Get(name string) Value {
 	return r.globalObject.self.getStr(name)
 }
 
 // SetRandSource sets random source for this Runtime. If not called, the default math/rand is used.
+//SetRandSource为此运行时设置随机源。如果未调用，则使用默认的math/rand。
 func (r *Runtime) SetRandSource(source RandSource) {
 	r.rand = source
 }
 
 // SetTimeSource sets the current time source for this Runtime.
 // If not called, the default time.Now() is used.
+//SetTimeSource设置此运行时的当前时间源。
+//如果不调用，则使用time.Now()
 func (r *Runtime) SetTimeSource(now Now) {
 	r.now = now
 }
 
 // New is an equivalent of the 'new' operator allowing to call it directly from Go.
+//New相当于“New”运算符，允许从Go直接调用它。
 func (r *Runtime) New(construct Value, args ...Value) (o *Object, err error) {
 	defer func() {
 		if x := recover(); x != nil {
@@ -1474,9 +1484,11 @@ func (r *Runtime) New(construct Value, args ...Value) (o *Object, err error) {
 }
 
 // Callable represents a JavaScript function that can be called from Go.
+//Callable表示可以从Go调用的JavaScript函数。
 type Callable func(this Value, args ...Value) (Value, error)
 
 // AssertFunction checks if the Value is a function and returns a Callable.
+//AssertFunction检查值是否为函数并返回可调用的值。
 func AssertFunction(v Value) (Callable, bool) {
 	if obj, ok := v.(*Object); ok {
 		if f, ok := obj.self.assertCallable(); ok {
@@ -1509,47 +1521,56 @@ func AssertFunction(v Value) (Callable, bool) {
 
 // IsUndefined returns true if the supplied Value is undefined. Note, it checks against the real undefined, not
 // against the global object's 'undefined' property.
+//如果提供的值未定义，则IsUndefined返回true。注意，它检查的是真正的未定义，而不是全局对象的“未定义”属性。
 func IsUndefined(v Value) bool {
 	return v == _undefined
 }
 
 // IsNull returns true if the supplied Value is null.
+//如果提供的值为空，则is null返回true。
 func IsNull(v Value) bool {
 	return v == _null
 }
 
 // IsNaN returns true if the supplied value is NaN.
+//如果提供的值为NaN，则IsNaN返回true。
 func IsNaN(v Value) bool {
 	f, ok := v.assertFloat()
 	return ok && math.IsNaN(f)
 }
 
 // IsInfinity returns true if the supplied is (+/-)Infinity
+// 如果提供的是（+/-）无穷大，则IsInfinity返回true
 func IsInfinity(v Value) bool {
 	return v == _positiveInf || v == _negativeInf
 }
 
 // Undefined returns JS undefined value. Note if global 'undefined' property is changed this still returns the original value.
+//Undefined返回JS Undefined值。注意，如果更改了全局“未定义”属性，则仍然返回原始值。
 func Undefined() Value {
 	return _undefined
 }
 
 // Null returns JS null value.
+//Null返回JS Null值。
 func Null() Value {
 	return _null
 }
 
 // NaN returns a JS NaN value.
+//NaN返回JS NaN值。
 func NaN() Value {
 	return _NaN
 }
 
 // PositiveInf returns a JS +Inf value.
+//PositiveInf返回JS+Inf值。
 func PositiveInf() Value {
 	return _positiveInf
 }
 
 // NegativeInf returns a JS -Inf value.
+//NegativeInf返回JS-Inf值。
 func NegativeInf() Value {
 	return _negativeInf
 }

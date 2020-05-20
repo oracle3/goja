@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 )
-
+// 构造一个新的Array
 func (r *Runtime) builtin_newArray(args []Value, proto *Object) *Object {
 	l := len(args)
 	if l == 1 {
@@ -27,7 +27,7 @@ func (r *Runtime) builtin_newArray(args []Value, proto *Object) *Object {
 		return r.newArrayValues(argsCopy)
 	}
 }
-
+// push的实现，添加一组数据，并修改长度
 func (r *Runtime) generic_push(obj *Object, call FunctionCall) Value {
 	l := toLength(obj.self.getStr("length"))
 	nl := l + int64(len(call.Arguments))
@@ -42,12 +42,13 @@ func (r *Runtime) generic_push(obj *Object, call FunctionCall) Value {
 	obj.self.putStr("length", n, true)
 	return n
 }
-
+//Array.prototype.push()
+//push() 方法将一个或多个元素添加到数组的末尾，并返回该数组的新长度。
 func (r *Runtime) arrayproto_push(call FunctionCall) Value {
 	obj := call.This.ToObject(r)
 	return r.generic_push(obj, call)
 }
-
+// pop的实现，删除一个元素，并长度减一
 func (r *Runtime) arrayproto_pop_generic(obj *Object, call FunctionCall) Value {
 	l := toLength(obj.self.getStr("length"))
 	if l == 0 {
@@ -60,7 +61,8 @@ func (r *Runtime) arrayproto_pop_generic(obj *Object, call FunctionCall) Value {
 	obj.self.putStr("length", idx, true)
 	return val
 }
-
+//Array.prototype.pop()
+//pop()方法从数组中删除最后一个元素，并返回该元素的值。此方法更改数组的长度。
 func (r *Runtime) arrayproto_pop(call FunctionCall) Value {
 	obj := call.This.ToObject(r)
 	if a, ok := obj.self.(*arrayObject); ok {
@@ -90,7 +92,9 @@ func (r *Runtime) arrayproto_pop(call FunctionCall) Value {
 		return r.arrayproto_pop_generic(obj, call)
 	}
 }
-
+//Array.prototype.join()
+//join() 方法将一个数组（或一个类数组对象）的所有元素连接成一个字符串并返回这个字符串。
+//如果数组只有一个项目，那么将返回该项目而不使用分隔符。
 func (r *Runtime) arrayproto_join(call FunctionCall) Value {
 	o := call.This.ToObject(r)
 	l := int(toLength(o.self.getStr("length")))
@@ -121,7 +125,8 @@ func (r *Runtime) arrayproto_join(call FunctionCall) Value {
 
 	return newStringValue(buf.String())
 }
-
+// Array.prototype.toString()
+//toString() 返回一个字符串，表示指定的数组及其元素。
 func (r *Runtime) arrayproto_toString(call FunctionCall) Value {
 	array := call.This.ToObject(r)
 	f := array.self.getStr("join")
@@ -136,7 +141,7 @@ func (r *Runtime) arrayproto_toString(call FunctionCall) Value {
 		This: array,
 	})
 }
-
+// 转换为本地字符串
 func (r *Runtime) writeItemLocaleString(item Value, buf *bytes.Buffer) {
 	if item != nil && item != _undefined && item != _null {
 		itemObj := item.ToObject(r)
@@ -152,7 +157,7 @@ func (r *Runtime) writeItemLocaleString(item Value, buf *bytes.Buffer) {
 		r.typeErrorResult(true, "Property 'toLocaleString' of object %s is not a function", itemObj)
 	}
 }
-
+// 生成带分号分割的本地字符串
 func (r *Runtime) arrayproto_toLocaleString_generic(obj *Object, start int64, buf *bytes.Buffer) Value {
 	length := toLength(obj.self.getStr("length"))
 	for i := int64(start); i < length; i++ {
@@ -164,7 +169,10 @@ func (r *Runtime) arrayproto_toLocaleString_generic(obj *Object, start int64, bu
 	}
 	return newStringValue(buf.String())
 }
-
+//Array.prototype.toLocaleString()
+//toLocaleString() 返回一个字符串表示数组中的元素。
+//数组中的元素将使用各自的 toLocaleString 方法转成字符串，
+//这些字符串将使用一个特定语言环境的字符串（例如一个逗号 ","）隔开。
 func (r *Runtime) arrayproto_toLocaleString(call FunctionCall) Value {
 	array := call.This.ToObject(r)
 	if a, ok := array.self.(*arrayObject); ok {
@@ -220,7 +228,8 @@ func (r *Runtime) arrayproto_concat_append(a *Object, item Value) {
 	descr.Value = item
 	a.self.defineOwnProperty(intToValue(aLength), descr, false)
 }
-
+//Array.prototype.concat()
+//concat() 方法用于合并两个或多个数组。此方法不会更改现有数组，而是返回一个新数组。
 func (r *Runtime) arrayproto_concat(call FunctionCall) Value {
 	a := r.newArrayValues(nil)
 	r.arrayproto_concat_append(a, call.This.ToObject(r))
@@ -229,21 +238,23 @@ func (r *Runtime) arrayproto_concat(call FunctionCall) Value {
 	}
 	return a
 }
-
+// 两个数比较取大
 func max(a, b int64) int64 {
 	if a > b {
 		return a
 	}
 	return b
 }
-
+// 两个数比较取小
 func min(a, b int64) int64 {
 	if a < b {
 		return a
 	}
 	return b
 }
-
+//Array.prototype.slice()
+//slice() 方法返回一个新的数组对象，这一对象是一个由 begin 和 end 决定的原数组的浅拷贝（包括 begin，不包括end）。
+//原始数组不会被改变。
 func (r *Runtime) arrayproto_slice(call FunctionCall) Value {
 	o := call.This.ToObject(r)
 	length := toLength(o.self.getStr("length"))
@@ -288,7 +299,9 @@ func (r *Runtime) arrayproto_slice(call FunctionCall) Value {
 	}
 	return a
 }
-
+//Array.prototype.sort()
+//sort() 方法用原地算法对数组的元素进行排序，并返回数组。
+//默认排序顺序是在将元素转换为字符串，然后比较它们的UTF-16代码单元值序列时构建的
 func (r *Runtime) arrayproto_sort(call FunctionCall) Value {
 	o := call.This.ToObject(r)
 
@@ -306,7 +319,8 @@ func (r *Runtime) arrayproto_sort(call FunctionCall) Value {
 	sort.Sort(&ctx)
 	return o
 }
-
+//Array.prototype.splice()
+//splice() 方法通过删除或替换现有元素或者原地添加新的元素来修改数组,并以数组形式返回被修改的内容。此方法会改变原数组。
 func (r *Runtime) arrayproto_splice(call FunctionCall) Value {
 	o := call.This.ToObject(r)
 	a := r.newArrayValues(nil)
@@ -365,7 +379,8 @@ func (r *Runtime) arrayproto_splice(call FunctionCall) Value {
 
 	return a
 }
-
+//Array.prototype.unshift()
+//unshift() 方法将一个或多个元素添加到数组的开头，并返回该数组的新长度(该方法修改原有数组)。
 func (r *Runtime) arrayproto_unshift(call FunctionCall) Value {
 	o := call.This.ToObject(r)
 	length := toLength(o.self.getStr("length"))
@@ -388,7 +403,8 @@ func (r *Runtime) arrayproto_unshift(call FunctionCall) Value {
 	o.self.putStr("length", newLen, true)
 	return newLen
 }
-
+//Array.prototype.indexOf()
+//indexOf()方法返回在数组中可以找到一个给定元素的第一个索引，如果不存在，则返回-1。
 func (r *Runtime) arrayproto_indexOf(call FunctionCall) Value {
 	o := call.This.ToObject(r)
 	length := toLength(o.self.getStr("length"))
@@ -418,7 +434,9 @@ func (r *Runtime) arrayproto_indexOf(call FunctionCall) Value {
 
 	return intToValue(-1)
 }
-
+//Array.prototype.lastIndexOf()
+//lastIndexOf() 方法返回指定元素（也即有效的 JavaScript 值或变量）在数组中的最后一个的索引，
+//如果不存在则返回 -1。从数组的后面向前查找，从 fromIndex 处开始。
 func (r *Runtime) arrayproto_lastIndexOf(call FunctionCall) Value {
 	o := call.This.ToObject(r)
 	length := toLength(o.self.getStr("length"))
@@ -452,7 +470,8 @@ func (r *Runtime) arrayproto_lastIndexOf(call FunctionCall) Value {
 
 	return intToValue(-1)
 }
-
+//Array.prototype.every()
+//every() 方法测试一个数组内的所有元素是否都能通过某个指定函数的测试。它返回一个布尔值。
 func (r *Runtime) arrayproto_every(call FunctionCall) Value {
 	o := call.This.ToObject(r)
 	length := toLength(o.self.getStr("length"))
@@ -477,7 +496,8 @@ func (r *Runtime) arrayproto_every(call FunctionCall) Value {
 	}
 	return valueTrue
 }
-
+//Array.prototype.some()
+//some() 方法测试数组中是不是至少有1个元素通过了被提供的函数测试。它返回的是一个Boolean类型的值。
 func (r *Runtime) arrayproto_some(call FunctionCall) Value {
 	o := call.This.ToObject(r)
 	length := toLength(o.self.getStr("length"))
@@ -502,7 +522,8 @@ func (r *Runtime) arrayproto_some(call FunctionCall) Value {
 	}
 	return valueFalse
 }
-
+//Array.prototype.forEach()实现
+//forEach() 方法对数组的每个元素执行一次给定的函数。
 func (r *Runtime) arrayproto_forEach(call FunctionCall) Value {
 	o := call.This.ToObject(r)
 	length := toLength(o.self.getStr("length"))
@@ -525,7 +546,8 @@ func (r *Runtime) arrayproto_forEach(call FunctionCall) Value {
 	}
 	return _undefined
 }
-
+//Array.prototype.map()实现
+//map() 方法创建一个新数组，其结果是该数组中的每个元素都调用一次提供的函数后的返回值。
 func (r *Runtime) arrayproto_map(call FunctionCall) Value {
 	o := call.This.ToObject(r)
 	length := toLength(o.self.getStr("length"))
@@ -553,7 +575,8 @@ func (r *Runtime) arrayproto_map(call FunctionCall) Value {
 	}
 	panic("unreachable")
 }
-
+//Array.prototype.filter()，
+//filter() 方法创建一个新数组, 其包含通过所提供函数实现的测试的所有元素。
 func (r *Runtime) arrayproto_filter(call FunctionCall) Value {
 	o := call.This.ToObject(r)
 	length := toLength(o.self.getStr("length"))
@@ -582,7 +605,8 @@ func (r *Runtime) arrayproto_filter(call FunctionCall) Value {
 	}
 	panic("unreachable")
 }
-
+//Array.prototype.reduce()实现
+// reduce() 方法对数组中的每个元素执行一个由您提供的reducer函数(升序执行)，将其结果汇总为单个返回值。
 func (r *Runtime) arrayproto_reduce(call FunctionCall) Value {
 	o := call.This.ToObject(r)
 	length := toLength(o.self.getStr("length"))
@@ -626,7 +650,8 @@ func (r *Runtime) arrayproto_reduce(call FunctionCall) Value {
 	}
 	panic("unreachable")
 }
-
+//Array.prototype.reduceRight()实现，
+// reduceRight() 方法接受一个函数作为累加器（accumulator）和数组的每个值（从右到左）将其减少为单个值。
 func (r *Runtime) arrayproto_reduceRight(call FunctionCall) Value {
 	o := call.This.ToObject(r)
 	length := toLength(o.self.getStr("length"))
@@ -670,7 +695,7 @@ func (r *Runtime) arrayproto_reduceRight(call FunctionCall) Value {
 	}
 	panic("unreachable")
 }
-
+// 数组中前后对称两个数据互换，如果没有数据的就删除
 func arrayproto_reverse_generic_step(o *Object, lower, upper int64) {
 	lowerP := intToValue(lower)
 	upperP := intToValue(upper)
@@ -687,7 +712,7 @@ func arrayproto_reverse_generic_step(o *Object, lower, upper int64) {
 		o.self.put(upperP, lowerValue, true)
 	}
 }
-
+// 数组中前后对称两个数据互换
 func (r *Runtime) arrayproto_reverse_generic(o *Object, start int64) {
 	l := toLength(o.self.getStr("length"))
 	middle := l / 2
@@ -695,7 +720,8 @@ func (r *Runtime) arrayproto_reverse_generic(o *Object, start int64) {
 		arrayproto_reverse_generic_step(o, lower, l-lower-1)
 	}
 }
-
+//Array.prototype.reverse()实现，reverse() 方法将数组中元素的位置颠倒，
+//并返回该数组。数组的第一个元素会变成最后一个，数组的最后一个元素变成第一个。该方法会改变原数组。
 func (r *Runtime) arrayproto_reverse(call FunctionCall) Value {
 	o := call.This.ToObject(r)
 	if a, ok := o.self.(*arrayObject); ok {
@@ -734,7 +760,7 @@ func (r *Runtime) arrayproto_reverse(call FunctionCall) Value {
 	}
 	return o
 }
-
+//Array.prototype.shift()实现，shift() 方法从数组中删除第一个元素，并返回该元素的值。此方法更改数组的长度。
 func (r *Runtime) arrayproto_shift(call FunctionCall) Value {
 	o := call.This.ToObject(r)
 	length := toLength(o.self.getStr("length"))
@@ -758,7 +784,7 @@ func (r *Runtime) arrayproto_shift(call FunctionCall) Value {
 
 	return first
 }
-
+// Array.isArray实现
 func (r *Runtime) array_isArray(call FunctionCall) Value {
 	if o, ok := call.Argument(0).(*Object); ok {
 		if isArray(o) {
@@ -767,7 +793,7 @@ func (r *Runtime) array_isArray(call FunctionCall) Value {
 	}
 	return valueFalse
 }
-
+// Array Proto实现
 func (r *Runtime) createArrayProto(val *Object) objectImpl {
 	o := &arrayObject{
 		baseObject: baseObject{
@@ -804,13 +830,13 @@ func (r *Runtime) createArrayProto(val *Object) objectImpl {
 
 	return o
 }
-
+// Array类仅挂载了一个函数isArray
 func (r *Runtime) createArray(val *Object) objectImpl {
 	o := r.newNativeFuncConstructObj(val, r.builtin_newArray, "Array", r.global.ArrayPrototype, 1)
 	o._putProp("isArray", r.newNativeFunc(r.array_isArray, nil, "isArray", nil, 1), true, false, true)
 	return o
 }
-
+// Array类实现
 func (r *Runtime) initArray() {
 	//r.global.ArrayPrototype = r.newArray(r.global.ObjectPrototype).val
 	//o := r.global.ArrayPrototype.self

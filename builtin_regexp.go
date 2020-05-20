@@ -150,7 +150,8 @@ func (r *Runtime) builtin_RegExp(call FunctionCall) Value {
 	}
 	return r.builtin_newRegExp(call.Arguments)
 }
-
+//RegExp.prototype.exec()
+//exec() 方法在一个指定字符串中执行一个搜索匹配。返回一个结果数组或 null。
 func (r *Runtime) regexpproto_exec(call FunctionCall) Value {
 	if this, ok := r.toObject(call.This).self.(*regexpObject); ok {
 		return this.exec(call.Argument(0).ToString())
@@ -159,7 +160,8 @@ func (r *Runtime) regexpproto_exec(call FunctionCall) Value {
 		return nil
 	}
 }
-
+//RegExp.prototype.test()
+//test() 方法执行一个检索，用来查看正则表达式与指定的字符串是否匹配。返回 true 或 false。
 func (r *Runtime) regexpproto_test(call FunctionCall) Value {
 	if this, ok := r.toObject(call.This).self.(*regexpObject); ok {
 		if this.test(call.Argument(0).ToString()) {
@@ -172,7 +174,8 @@ func (r *Runtime) regexpproto_test(call FunctionCall) Value {
 		return nil
 	}
 }
-
+//RegExp.prototype.toString()
+//toString() 返回一个表示该正则表达式的字符串。
 func (r *Runtime) regexpproto_toString(call FunctionCall) Value {
 	if this, ok := r.toObject(call.This).self.(*regexpObject); ok {
 		var g, i, m string
@@ -191,7 +194,8 @@ func (r *Runtime) regexpproto_toString(call FunctionCall) Value {
 		return nil
 	}
 }
-
+//RegExp.prototype.source
+//source 属性返回一个值为当前正则表达式对象的模式文本的字符串，该字符串不会包含正则字面量两边的斜杠以及任何的标志字符。
 func (r *Runtime) regexpproto_getSource(call FunctionCall) Value {
 	if this, ok := r.toObject(call.This).self.(*regexpObject); ok {
 		return this.source
@@ -200,7 +204,8 @@ func (r *Runtime) regexpproto_getSource(call FunctionCall) Value {
 		return nil
 	}
 }
-
+//RegExp.prototype.global
+//global 属性表明正则表达式是否使用了 "g" 标志。global 是一个正则表达式实例的只读属性。
 func (r *Runtime) regexpproto_getGlobal(call FunctionCall) Value {
 	if this, ok := r.toObject(call.This).self.(*regexpObject); ok {
 		if this.global {
@@ -213,7 +218,8 @@ func (r *Runtime) regexpproto_getGlobal(call FunctionCall) Value {
 		return nil
 	}
 }
-
+//RegExp.prototype.multiline
+//multiline 属性表明正则表达式是否使用了 "m" 标志。multiline 是正则表达式实例的一个只读属性。
 func (r *Runtime) regexpproto_getMultiline(call FunctionCall) Value {
 	if this, ok := r.toObject(call.This).self.(*regexpObject); ok {
 		if this.multiline {
@@ -226,7 +232,8 @@ func (r *Runtime) regexpproto_getMultiline(call FunctionCall) Value {
 		return nil
 	}
 }
-
+//RegExp.prototype.ignoreCase
+//ignoreCase 属性表明正则表达式是否使用了 "i" 标志。ignoreCase 是正则表达式实例的只读属性。
 func (r *Runtime) regexpproto_getIgnoreCase(call FunctionCall) Value {
 	if this, ok := r.toObject(call.This).self.(*regexpObject); ok {
 		if this.ignoreCase {
@@ -239,7 +246,7 @@ func (r *Runtime) regexpproto_getIgnoreCase(call FunctionCall) Value {
 		return nil
 	}
 }
-
+//RegExp类构造
 func (r *Runtime) initRegExp() {
 	r.global.RegExpPrototype = r.NewObject()
 	o := r.global.RegExpPrototype.self

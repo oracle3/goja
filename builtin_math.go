@@ -3,50 +3,61 @@ package goja
 import (
 	"math"
 )
-
+//Math.abs(x)
+//返回一个数的绝对值。
 func (r *Runtime) math_abs(call FunctionCall) Value {
 	return floatToValue(math.Abs(call.Argument(0).ToFloat()))
 }
-
+//Math.acos(x)
+//返回一个数的反余弦值。
 func (r *Runtime) math_acos(call FunctionCall) Value {
 	return floatToValue(math.Acos(call.Argument(0).ToFloat()))
 }
-
+//Math.asin(x)
+//返回一个数的反正弦值。
 func (r *Runtime) math_asin(call FunctionCall) Value {
 	return floatToValue(math.Asin(call.Argument(0).ToFloat()))
 }
-
+//Math.atan(x)
+//返回一个数的反正切值。
 func (r *Runtime) math_atan(call FunctionCall) Value {
 	return floatToValue(math.Atan(call.Argument(0).ToFloat()))
 }
-
+//Math.atan2(y, x)
+//返回 y/x 的反正切值。
 func (r *Runtime) math_atan2(call FunctionCall) Value {
 	y := call.Argument(0).ToFloat()
 	x := call.Argument(1).ToFloat()
 
 	return floatToValue(math.Atan2(y, x))
 }
-
+//Math.ceil(x)
+//返回大于一个数的最小整数，即一个数向上取整后的值。
 func (r *Runtime) math_ceil(call FunctionCall) Value {
 	return floatToValue(math.Ceil(call.Argument(0).ToFloat()))
 }
-
+//Math.cos(x)
+//返回一个数的余弦值。
 func (r *Runtime) math_cos(call FunctionCall) Value {
 	return floatToValue(math.Cos(call.Argument(0).ToFloat()))
 }
-
+//Math.exp(x)
+//返回欧拉常数的参数次方，Ex，其中 x 为参数，E 是欧拉常数（2.718...，自然对数的底数）。
 func (r *Runtime) math_exp(call FunctionCall) Value {
 	return floatToValue(math.Exp(call.Argument(0).ToFloat()))
 }
-
+//Math.floor(x)
+//返回小于一个数的最大整数，即一个数向下取整后的值。
 func (r *Runtime) math_floor(call FunctionCall) Value {
 	return floatToValue(math.Floor(call.Argument(0).ToFloat()))
 }
-
+//Math.log(x)
+//返回一个数的自然对数（㏒e，即 ㏑）。
 func (r *Runtime) math_log(call FunctionCall) Value {
 	return floatToValue(math.Log(call.Argument(0).ToFloat()))
 }
-
+//Math.max([x[, y[, …]]])
+//返回零到多个数值中最大值。
 func (r *Runtime) math_max(call FunctionCall) Value {
 	if len(call.Arguments) == 0 {
 		return _negativeInf
@@ -65,7 +76,8 @@ func (r *Runtime) math_max(call FunctionCall) Value {
 	}
 	return floatToValue(result)
 }
-
+//Math.min([x[, y[, …]]])
+//返回零到多个数值中最小值。
 func (r *Runtime) math_min(call FunctionCall) Value {
 	if len(call.Arguments) == 0 {
 		return _positiveInf
@@ -84,7 +96,8 @@ func (r *Runtime) math_min(call FunctionCall) Value {
 	}
 	return floatToValue(result)
 }
-
+//Math.pow(x, y)
+//返回一个数的 y 次幂。
 func (r *Runtime) math_pow(call FunctionCall) Value {
 	x := call.Argument(0)
 	y := call.Argument(1)
@@ -105,11 +118,13 @@ func (r *Runtime) math_pow(call FunctionCall) Value {
 
 	return floatToValue(math.Pow(x.ToFloat(), y.ToFloat()))
 }
-
+//Math.random()
+//返回一个 0 到 1 之间的伪随机数。
 func (r *Runtime) math_random(call FunctionCall) Value {
 	return floatToValue(r.rand())
 }
-
+//Math.round(x)
+//返回四舍五入后的整数。
 func (r *Runtime) math_round(call FunctionCall) Value {
 	f := call.Argument(0).ToFloat()
 	if math.IsNaN(f) {
@@ -134,15 +149,18 @@ func (r *Runtime) math_round(call FunctionCall) Value {
 
 	return floatToValue(t)
 }
-
+//Math.sin(x)
+//返回一个数的正弦值。
 func (r *Runtime) math_sin(call FunctionCall) Value {
 	return floatToValue(math.Sin(call.Argument(0).ToFloat()))
 }
-
+//Math.sqrt(x)
+//返回一个数的平方根。
 func (r *Runtime) math_sqrt(call FunctionCall) Value {
 	return floatToValue(math.Sqrt(call.Argument(0).ToFloat()))
 }
-
+//Math.tan(x)
+//返回一个数的正切值。
 func (r *Runtime) math_tan(call FunctionCall) Value {
 	return floatToValue(math.Tan(call.Argument(0).ToFloat()))
 }
@@ -155,16 +173,21 @@ func (r *Runtime) createMath(val *Object) objectImpl {
 		prototype:  r.global.ObjectPrototype,
 	}
 	m.init()
-	// 返回算术常量 e，即自然对数的底数（约等于2.718）
+	//欧拉常数，也是自然对数的底数，约等于 2.718。
 	m._putProp("E", valueFloat(math.E), false, false, false)
-	// 返回 10 的自然对数（约等于2.302）
+	//10 的自然对数，约等于 2.303。
 	m._putProp("LN10", valueFloat(math.Ln10), false, false, false)
-	// 
+	//2 的自然对数，约等于 0.693。
 	m._putProp("LN2", valueFloat(math.Ln2), false, false, false)
+	//以 2 为底的 E 的对数，约等于 1.443。
 	m._putProp("LOG2E", valueFloat(math.Log2E), false, false, false)
+	//以 10 为底的 E 的对数，约等于 0.434。
 	m._putProp("LOG10E", valueFloat(math.Log10E), false, false, false)
+	//圆周率，一个圆的周长和直径之比，约等于 3.14159。
 	m._putProp("PI", valueFloat(math.Pi), false, false, false)
+	//二分之一 ½ 的平方根，同时也是 2 的平方根的倒数 ，约等于 0.707。
 	m._putProp("SQRT1_2", valueFloat(sqrt1_2), false, false, false)
+	//2 的平方根，约等于 1.414。
 	m._putProp("SQRT2", valueFloat(math.Sqrt2), false, false, false)
 
 	m._putProp("abs", r.newNativeFunc(r.math_abs, nil, "abs", nil, 1), true, false, true)

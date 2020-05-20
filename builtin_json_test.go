@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 )
-
+// 测试将数据编码成json字符串
 func TestJSONMarshalObject(t *testing.T) {
 	vm := New()
 	o := vm.NewObject()
@@ -20,7 +20,7 @@ func TestJSONMarshalObject(t *testing.T) {
 		t.Fatalf("Unexpected value: %s", b)
 	}
 }
-
+// 测试将日期编码成json字符串
 func TestJSONMarshalGoDate(t *testing.T) {
 	vm := New()
 	o := vm.NewObject()
@@ -33,7 +33,7 @@ func TestJSONMarshalGoDate(t *testing.T) {
 		t.Fatalf("Unexpected value: %s", b)
 	}
 }
-
+//将循环结构转换为JSON
 func TestJSONMarshalObjectCircular(t *testing.T) {
 	vm := New()
 	o := vm.NewObject()

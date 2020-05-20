@@ -84,11 +84,13 @@ func (r *Runtime) stringproto_toStringValueOf(this Value, funcName string) Value
 	r.typeErrorResult(true, "String.prototype.%s is called on incompatible receiver", funcName)
 	return nil
 }
-
+//String.prototype.toString()
+//toString() 方法返回指定对象的字符串形式。
 func (r *Runtime) stringproto_toString(call FunctionCall) Value {
 	return r.stringproto_toStringValueOf(call.This, "toString")
 }
-
+//String.prototype.valueOf()
+//valueOf()返回字符串对象的值。
 func (r *Runtime) stringproto_valueOf(call FunctionCall) Value {
 	return r.stringproto_toStringValueOf(call.This, "valueOf")
 }
@@ -114,7 +116,8 @@ func (r *Runtime) string_fromcharcode(call FunctionCall) Value {
 
 	return asciiString(b)
 }
-
+//String.prototype.charAt()
+//String对象的charAt（）方法返回一个新字符串，该字符串由位于字符串指定偏移处的单个UTF-16代码单元组成。
 func (r *Runtime) stringproto_charAt(call FunctionCall) Value {
 	r.checkObjectCoercible(call.This)
 	s := call.This.ToString()
@@ -124,7 +127,11 @@ func (r *Runtime) stringproto_charAt(call FunctionCall) Value {
 	}
 	return newStringValue(string(s.charAt(pos)))
 }
-
+//String.prototype.charCodeAt()
+//charCodeAt() 方法返回0到65535之间的整数，表示给定索引处的UTF-16代码单元
+//(在 Unicode 编码单元表示一个单一的 UTF-16 编码单元的情况下，UTF-16 编码单元匹配 Unicode 编码单元。
+//但在——例如 Unicode 编码单元 > 0x10000 的这种——不能被一个 UTF-16 编码单元单独表示的情况下，
+//只能匹配 Unicode 代理对的第一个编码单元) 。如果你想要整个代码点的值，使用 codePointAt()
 func (r *Runtime) stringproto_charCodeAt(call FunctionCall) Value {
 	r.checkObjectCoercible(call.This)
 	s := call.This.ToString()
@@ -134,7 +141,8 @@ func (r *Runtime) stringproto_charCodeAt(call FunctionCall) Value {
 	}
 	return intToValue(int64(s.charAt(pos) & 0xFFFF))
 }
-
+//String.prototype.concat()
+//concat() 方法将一个或多个字符串与原字符串连接合并，形成一个新的字符串并返回。
 func (r *Runtime) stringproto_concat(call FunctionCall) Value {
 	r.checkObjectCoercible(call.This)
 	strs := make([]valueString, len(call.Arguments)+1)
@@ -174,7 +182,8 @@ func (r *Runtime) stringproto_concat(call FunctionCall) Value {
 		return unicodeString(buf)
 	}
 }
-
+//String.prototype.indexOf()
+//indexOf() 方法返回调用它的 String 对象中第一次出现的指定值的索引，从 fromIndex 处进行搜索。如果未找到该值，则返回 -1。
 func (r *Runtime) stringproto_indexOf(call FunctionCall) Value {
 	r.checkObjectCoercible(call.This)
 	value := call.This.ToString()
@@ -192,7 +201,9 @@ func (r *Runtime) stringproto_indexOf(call FunctionCall) Value {
 
 	return intToValue(value.index(target, pos))
 }
-
+//String.prototype.lastIndexOf()
+//lastIndexOf() 方法返回调用String 对象的指定值最后一次出现的索引，
+//在一个字符串中的指定位置 fromIndex处从后向前搜索。如果没找到这个特定值则返回-1 。
 func (r *Runtime) stringproto_lastIndexOf(call FunctionCall) Value {
 	r.checkObjectCoercible(call.This)
 	value := call.This.ToString()
@@ -216,14 +227,16 @@ func (r *Runtime) stringproto_lastIndexOf(call FunctionCall) Value {
 
 	return intToValue(value.lastIndex(target, pos))
 }
-
+//String.prototype.localeCompare()
+//localeCompare() 方法返回一个数字来指示一个参考字符串是否在排序顺序前面或之后或与给定字符串相同。
 func (r *Runtime) stringproto_localeCompare(call FunctionCall) Value {
 	r.checkObjectCoercible(call.This)
 	this := norm.NFD.String(call.This.String())
 	that := norm.NFD.String(call.Argument(0).String())
 	return intToValue(int64(r.collator().CompareString(this, that)))
 }
-
+//String.prototype.match()
+//match() 方法检索返回一个字符串匹配正则表达式的的结果
 func (r *Runtime) stringproto_match(call FunctionCall) Value {
 	r.checkObjectCoercible(call.This)
 	s := call.This.ToString()
@@ -263,7 +276,9 @@ func (r *Runtime) stringproto_match(call FunctionCall) Value {
 		return rx.exec(s)
 	}
 }
-
+//String.prototype.replace()
+//replace() 方法返回一个由替换值（replacement）替换一些或所有匹配的模式（pattern）后的新字符串。
+//模式可以是一个字符串或者一个正则表达式，替换值可以是一个字符串或者一个每次匹配都要调用的回调函数。
 func (r *Runtime) stringproto_replace(call FunctionCall) Value {
 	s := call.This.ToString()
 	var str string
@@ -405,7 +420,8 @@ func (r *Runtime) stringproto_replace(call FunctionCall) Value {
 
 	return newStringValue(buf.String())
 }
-
+//String.prototype.search()
+//search() 方法执行正则表达式和 String 对象之间的一个搜索匹配。
 func (r *Runtime) stringproto_search(call FunctionCall) Value {
 	r.checkObjectCoercible(call.This)
 	s := call.This.ToString()
@@ -425,7 +441,8 @@ func (r *Runtime) stringproto_search(call FunctionCall) Value {
 	}
 	return intToValue(int64(result[0]))
 }
-
+//String.prototype.slice()
+//slice() 方法提取某个字符串的一部分，并返回一个新的字符串，且不会改动原字符串。
 func (r *Runtime) stringproto_slice(call FunctionCall) Value {
 	r.checkObjectCoercible(call.This)
 	s := call.This.ToString()
@@ -466,7 +483,8 @@ func (r *Runtime) stringproto_slice(call FunctionCall) Value {
 	}
 	return stringEmpty
 }
-
+//String.prototype.split()
+//split() 方法使用指定的分隔符字符串将一个String对象分割成子字符串数组，以一个指定的分割字串来决定每个拆分的位置。
 func (r *Runtime) stringproto_split(call FunctionCall) Value {
 	r.checkObjectCoercible(call.This)
 	s := call.This.ToString()
@@ -578,7 +596,8 @@ func (r *Runtime) stringproto_split(call FunctionCall) Value {
 	}
 
 }
-
+//String.prototype.substring()
+//substring() 方法返回一个字符串在开始索引到结束索引之间的一个子集, 或从开始索引直到字符串的末尾的一个子集。
 func (r *Runtime) stringproto_substring(call FunctionCall) Value {
 	r.checkObjectCoercible(call.This)
 	s := call.This.ToString()
@@ -609,28 +628,33 @@ func (r *Runtime) stringproto_substring(call FunctionCall) Value {
 
 	return s.substring(intStart, intEnd)
 }
-
+//String.prototype.toLowerCase()
+//toLowerCase() 会将调用该方法的字符串值转为小写形式，并返回。
 func (r *Runtime) stringproto_toLowerCase(call FunctionCall) Value {
 	r.checkObjectCoercible(call.This)
 	s := call.This.ToString()
 
 	return s.toLower()
 }
-
+//String.prototype.toUpperCase()
+//toUpperCase() 会将调用该方法的字符串值转为大写形式，并返回。
 func (r *Runtime) stringproto_toUpperCase(call FunctionCall) Value {
 	r.checkObjectCoercible(call.This)
 	s := call.This.ToString()
 
 	return s.toUpper()
 }
-
+//String.prototype.trim()
+//trim() 方法会从一个字符串的两端删除空白字符。
+//在这个上下文中的空白字符是所有的空白字符 (space, tab, no-break space 等) 以及所有行终止符字符（如 LF，CR等）
 func (r *Runtime) stringproto_trim(call FunctionCall) Value {
 	r.checkObjectCoercible(call.This)
 	s := call.This.ToString()
 
 	return newStringValue(strings.Trim(s.String(), parser.WhitespaceChars))
 }
-
+//String.prototype.substr()
+//substr() 方法返回一个字符串中从指定位置开始到指定字符数的字符。
 func (r *Runtime) stringproto_substr(call FunctionCall) Value {
 	s := call.This.ToString()
 	start := call.Argument(0).ToInteger()
@@ -653,7 +677,7 @@ func (r *Runtime) stringproto_substr(call FunctionCall) Value {
 
 	return s.substring(start, start+length)
 }
-
+//String类构造
 func (r *Runtime) initString() {
 	r.global.StringPrototype = r.builtin_newString([]Value{stringEmpty})
 

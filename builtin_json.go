@@ -10,7 +10,8 @@ import (
 )
 
 var hex = "0123456789abcdef"
-
+//JSON.parse() 方法用来解析JSON字符串，构造由字符串描述的JavaScript值或对象。
+//提供可选的 reviver 函数用以在返回之前对所得到的对象执行变换(操作)。
 func (r *Runtime) builtinJSON_parse(call FunctionCall) Value {
 	d := json.NewDecoder(bytes.NewBufferString(call.Argument(0).String()))
 
@@ -37,7 +38,7 @@ func (r *Runtime) builtinJSON_parse(call FunctionCall) Value {
 
 	return value
 }
-
+// json的标记解析
 func (r *Runtime) builtinJSON_decodeToken(d *json.Decoder, tok json.Token) (Value, error) {
 	switch tok := tok.(type) {
 	case json.Delim:
@@ -61,7 +62,7 @@ func (r *Runtime) builtinJSON_decodeToken(d *json.Decoder, tok json.Token) (Valu
 	}
 	return nil, fmt.Errorf("Unexpected token (%T): %v", tok, tok)
 }
-
+// 解析json的value
 func (r *Runtime) builtinJSON_decodeValue(d *json.Decoder) (Value, error) {
 	tok, err := d.Token()
 	if err != nil {
@@ -69,7 +70,7 @@ func (r *Runtime) builtinJSON_decodeValue(d *json.Decoder) (Value, error) {
 	}
 	return r.builtinJSON_decodeToken(d, tok)
 }
-
+// 解析json的kv
 func (r *Runtime) builtinJSON_decodeObject(d *json.Decoder) (*Object, error) {
 	object := r.NewObject()
 	for {
@@ -99,14 +100,14 @@ func (r *Runtime) builtinJSON_decodeObject(d *json.Decoder) (*Object, error) {
 	}
 	return object, nil
 }
-
+// 解析json的key
 func (r *Runtime) builtinJSON_decodeObjectKey(d *json.Decoder) (string, bool, error) {
 	tok, err := d.Token()
 	if err != nil {
 		return "", false, err
 	}
 	switch tok := tok.(type) {
-	case json.Delim:
+	case json.Delim: // Delim是JSON数组或对象分隔符，是[]{或}之一。
 		if tok == '}' {
 			return "", true, nil
 		}
@@ -116,7 +117,7 @@ func (r *Runtime) builtinJSON_decodeObjectKey(d *json.Decoder) (string, bool, er
 
 	return "", false, fmt.Errorf("Unexpected token (%T): %v", tok, tok)
 }
-
+// 解析json数组
 func (r *Runtime) builtinJSON_decodeArray(d *json.Decoder) (*Object, error) {
 	var arrayValue []Value
 	for {
@@ -137,7 +138,7 @@ func (r *Runtime) builtinJSON_decodeArray(d *json.Decoder) (*Object, error) {
 	}
 	return r.newArrayValues(arrayValue), nil
 }
-
+// 判断是否是数组
 func isArray(object *Object) bool {
 	switch object.self.className() {
 	case classArray:
@@ -190,7 +191,9 @@ type _builtinJSON_stringifyContext struct {
 	gap, indent      string
 	buf              bytes.Buffer
 }
-
+//JSON.stringify() 方法将一个 JavaScript 值（对象或者数组）转换为一个 JSON 字符串，
+//如果指定了 replacer 是一个函数，则可以选择性地替换值，或者如果指定了 replacer 是一个数组，
+//则可选择性地仅包含数组指定的属性。
 func (r *Runtime) builtinJSON_stringify(call FunctionCall) Value {
 	ctx := _builtinJSON_stringifyContext{
 		r: r,

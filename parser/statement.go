@@ -363,6 +363,7 @@ func (self *_parser) parseIterationStatement() ast.Statement {
 	return self.parseStatement()
 }
 // for表达式解析
+// 类似：for (x in mycars)
 func (self *_parser) parseForIn(idx file.Idx, into ast.Expression) *ast.ForInStatement {
 
 	// Already have consumed "<into> in" 已消耗“<into>in”
@@ -377,7 +378,8 @@ func (self *_parser) parseForIn(idx file.Idx, into ast.Expression) *ast.ForInSta
 		Body:   self.parseIterationStatement(),
 	}
 }
-
+// for表达式解析
+// 类似：for (语句 1; 语句 2; 语句 3)
 func (self *_parser) parseFor(idx file.Idx, initializer ast.Expression) *ast.ForStatement {
 
 	// Already have consumed "<initializer> ;"
@@ -402,7 +404,7 @@ func (self *_parser) parseFor(idx file.Idx, initializer ast.Expression) *ast.For
 		Body:        self.parseIterationStatement(),
 	}
 }
-
+// for表达式解析，包括了for和forin
 func (self *_parser) parseForOrForInStatement() ast.Statement {
 	idx := self.expect(token.FOR)
 	self.expect(token.LEFT_PARENTHESIS)
@@ -450,7 +452,7 @@ func (self *_parser) parseForOrForInStatement() ast.Statement {
 	self.expect(token.SEMICOLON)
 	return self.parseFor(idx, &ast.SequenceExpression{Sequence: left})
 }
-
+// 变量定义解析
 func (self *_parser) parseVariableStatement() *ast.VariableStatement {
 
 	idx := self.expect(token.VAR)
@@ -463,7 +465,7 @@ func (self *_parser) parseVariableStatement() *ast.VariableStatement {
 		List: list,
 	}
 }
-
+// do/while语句解析
 func (self *_parser) parseDoWhileStatement() ast.Statement {
 	inIteration := self.scope.inIteration
 	self.scope.inIteration = true
@@ -489,7 +491,7 @@ func (self *_parser) parseDoWhileStatement() ast.Statement {
 
 	return node
 }
-
+// while语句解析
 func (self *_parser) parseWhileStatement() ast.Statement {
 	self.expect(token.WHILE)
 	self.expect(token.LEFT_PARENTHESIS)
@@ -501,7 +503,7 @@ func (self *_parser) parseWhileStatement() ast.Statement {
 
 	return node
 }
-
+// if语句解析
 func (self *_parser) parseIfStatement() ast.Statement {
 	self.expect(token.IF)
 	self.expect(token.LEFT_PARENTHESIS)
@@ -523,11 +525,11 @@ func (self *_parser) parseIfStatement() ast.Statement {
 
 	return node
 }
-
+// 开始语句解析
 func (self *_parser) parseSourceElement() ast.Statement {
 	return self.parseStatement()
 }
-
+// 开始解析
 func (self *_parser) parseSourceElements() []ast.Statement {
 	body := []ast.Statement(nil)
 
@@ -556,7 +558,8 @@ func (self *_parser) parseProgram() *ast.Program {
 		SourceMap:       self.parseSourceMap(),
 	}
 }
-
+// Source map就是一个信息文件，里面储存着位置信息。也就是说，转换后的代码的每一个位置，所对应的转换前的位置。
+// 有了它，出错的时候，除错工具将直接显示原始代码，而不是转换后的代码。这无疑给开发者带来了很大方便。
 func (self *_parser) parseSourceMap() *sourcemap.Consumer {
 	lastLine := self.str[strings.LastIndexByte(self.str, '\n')+1:]
 	if strings.HasPrefix(lastLine, "//# sourceMappingURL") {
@@ -595,7 +598,7 @@ func (self *_parser) parseSourceMap() *sourcemap.Consumer {
 	}
 	return nil
 }
-
+// break语句解析
 func (self *_parser) parseBreakStatement() ast.Statement {
 	idx := self.expect(token.BREAK)
 	semicolon := self.implicitSemicolon
@@ -636,7 +639,7 @@ illegal:
 	self.nextStatement()
 	return &ast.BadStatement{From: idx, To: self.idx}
 }
-
+// continue语句解析
 func (self *_parser) parseContinueStatement() ast.Statement {
 	idx := self.expect(token.CONTINUE)
 	semicolon := self.implicitSemicolon
@@ -682,6 +685,7 @@ illegal:
 }
 
 // Find the next statement after an error (recover)
+// 查找错误后的下一条语句（recover）
 func (self *_parser) nextStatement() {
 	for {
 		switch self.token {
@@ -693,6 +697,8 @@ func (self *_parser) nextStatement() {
 			// sync or if it has not reached 10 next calls without
 			// progress. Otherwise consume at least one token to
 			// avoid an endless parser loop
+			// 仅当解析器在上次同步后取得了一些进展，或者在没有进展的情况下未达到10个下一次调用时返回。
+			// 否则，至少使用一个令牌以避免无休止的解析器循环
 			if self.idx == self.recover.idx && self.recover.count < 10 {
 				self.recover.count++
 				return
@@ -707,6 +713,8 @@ func (self *_parser) nextStatement() {
 			// leads to skipping of possibly correct code if a
 			// previous error is present, and thus is preferred
 			// over a non-terminating parse.
+			// 到达此处表示解析器错误，可能是此函数中的不正确标记列表，
+			// 但仅当出现以前的错误时才导致跳过可能正确的代码，因此优先于不终止的解析。
 		case token.EOF:
 			return
 		}

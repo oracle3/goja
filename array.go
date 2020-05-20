@@ -14,14 +14,14 @@ type arrayObject struct {
 	propValueCount int
 	lengthProp     valueProperty
 }
-
+// 数组对象初始化，主要设置长度
 func (a *arrayObject) init() {
 	a.baseObject.init()
 	a.lengthProp.writable = true
 
 	a._put("length", &a.lengthProp)
 }
-
+// 设置长度
 func (a *arrayObject) _setLengthInt(l int64, throw bool) bool {
 	if l >= 0 && l <= math.MaxUint32 {
 		ret := true
@@ -67,7 +67,7 @@ func (a *arrayObject) _setLengthInt(l int64, throw bool) bool {
 	}
 	panic(a.val.runtime.newError(a.val.runtime.global.RangeError, "Invalid array length"))
 }
-
+// 设置长度
 func (a *arrayObject) setLengthInt(l int64, throw bool) bool {
 	if l == a.length {
 		return true
@@ -78,7 +78,7 @@ func (a *arrayObject) setLengthInt(l int64, throw bool) bool {
 	}
 	return a._setLengthInt(l, throw)
 }
-
+// 设置长度
 func (a *arrayObject) setLength(v Value, throw bool) bool {
 	l, ok := toIntIgnoreNegZero(v)
 	if ok && l == a.length {
@@ -93,7 +93,7 @@ func (a *arrayObject) setLength(v Value, throw bool) bool {
 	}
 	panic(a.val.runtime.newError(a.val.runtime.global.RangeError, "Invalid array length"))
 }
-
+// 按索引，origName，origNameStr的顺序获取值，以先取到的为准
 func (a *arrayObject) getIdx(idx int64, origNameStr string, origName Value) (v Value) {
 	if idx >= 0 && idx < int64(len(a.values)) {
 		v = a.values[idx]
@@ -107,11 +107,11 @@ func (a *arrayObject) getIdx(idx int64, origNameStr string, origName Value) (v V
 	}
 	return
 }
-
+// 获得数据长度
 func (a *arrayObject) sortLen() int64 {
 	return int64(len(a.values))
 }
-
+// 获得指定索引的数据
 func (a *arrayObject) sortGet(i int64) Value {
 	v := a.values[i]
 	if p, ok := v.(*valueProperty); ok {
@@ -119,11 +119,11 @@ func (a *arrayObject) sortGet(i int64) Value {
 	}
 	return v
 }
-
+// 两个索引位置数据互换
 func (a *arrayObject) swap(i, j int64) {
 	a.values[i], a.values[j] = a.values[j], a.values[i]
 }
-
+// v转int64
 func toIdx(v Value) (idx int64) {
 	idx = -1
 	if idxVal, ok1 := v.(valueInt); ok1 {
@@ -138,7 +138,7 @@ func toIdx(v Value) (idx int64) {
 	}
 	return -1
 }
-
+// 字符串s转int64
 func strToIdx(s string) (idx int64) {
 	idx = -1
 	if i, err := strconv.ParseInt(s, 10, 64); err == nil {
@@ -150,7 +150,7 @@ func strToIdx(s string) (idx int64) {
 	}
 	return -1
 }
-
+// 获取指定位置的属性
 func (a *arrayObject) getProp(n Value) Value {
 	if idx := toIdx(n); idx >= 0 {
 		return a.getIdx(idx, "", n)
@@ -161,12 +161,12 @@ func (a *arrayObject) getProp(n Value) Value {
 	}
 	return a.baseObject.getProp(n)
 }
-
+// 获取长度属性
 func (a *arrayObject) getLengthProp() Value {
 	a.lengthProp.value = intToValue(a.length)
 	return &a.lengthProp
 }
-
+// 获取属性字符串
 func (a *arrayObject) getPropStr(name string) Value {
 	if i := strToIdx(name); i >= 0 {
 		return a.getIdx(i, name, nil)
@@ -176,7 +176,7 @@ func (a *arrayObject) getPropStr(name string) Value {
 	}
 	return a.baseObject.getPropStr(name)
 }
-
+// 获取属性字符串
 func (a *arrayObject) getOwnProp(name string) Value {
 	if i := strToIdx(name); i >= 0 {
 		if i >= 0 && i < int64(len(a.values)) {
@@ -188,7 +188,7 @@ func (a *arrayObject) getOwnProp(name string) Value {
 	}
 	return a.baseObject.getOwnProp(name)
 }
-
+// 指定位置idx设置值val
 func (a *arrayObject) putIdx(idx int64, val Value, throw bool, origNameStr string, origName Value) {
 	var prop Value
 	if idx < int64(len(a.values)) {
@@ -196,6 +196,7 @@ func (a *arrayObject) putIdx(idx int64, val Value, throw bool, origNameStr strin
 	}
 
 	if prop == nil {
+		// 指定位置的值不存在情况下，找origName或origNameStr设置
 		if a.prototype != nil {
 			var pprop Value
 			if origName != nil {
@@ -231,6 +232,7 @@ func (a *arrayObject) putIdx(idx int64, val Value, throw bool, origNameStr strin
 			}
 		}
 	} else {
+		// 指定位置设置值
 		if prop, ok := prop.(*valueProperty); ok {
 			if !prop.isWritable() {
 				a.val.runtime.typeErrorResult(throw)
@@ -244,7 +246,7 @@ func (a *arrayObject) putIdx(idx int64, val Value, throw bool, origNameStr strin
 	a.values[idx] = val
 	a.objCount++
 }
-
+// 指定位置n设置值val
 func (a *arrayObject) put(n Value, val Value, throw bool) {
 	if idx := toIdx(n); idx >= 0 {
 		a.putIdx(idx, val, throw, "", n)
@@ -256,7 +258,7 @@ func (a *arrayObject) put(n Value, val Value, throw bool) {
 		}
 	}
 }
-
+// 指定位置name设置值val
 func (a *arrayObject) putStr(name string, val Value, throw bool) {
 	if idx := strToIdx(name); idx >= 0 {
 		a.putIdx(idx, val, throw, name, nil)
@@ -274,7 +276,7 @@ type arrayPropIter struct {
 	recursive bool
 	idx       int
 }
-
+// 取下一个数据
 func (i *arrayPropIter) next() (propIterItem, iterNextFunc) {
 	for i.idx < len(i.a.values) {
 		name := strconv.Itoa(i.idx)
@@ -294,7 +296,7 @@ func (a *arrayObject) _enumerate(recursive bool) iterNextFunc {
 		recursive: recursive,
 	}).next
 }
-
+// 构造迭代器
 func (a *arrayObject) enumerate(all, recursive bool) iterNextFunc {
 	return (&propFilterIter{
 		wrapped: a._enumerate(recursive),
@@ -302,7 +304,7 @@ func (a *arrayObject) enumerate(all, recursive bool) iterNextFunc {
 		seen:    make(map[string]bool),
 	}).next
 }
-
+// 判断n属性存在
 func (a *arrayObject) hasOwnProperty(n Value) bool {
 	if idx := toIdx(n); idx >= 0 {
 		return idx < int64(len(a.values)) && a.values[idx] != nil && a.values[idx] != _undefined
@@ -310,7 +312,7 @@ func (a *arrayObject) hasOwnProperty(n Value) bool {
 		return a.baseObject.hasOwnProperty(n)
 	}
 }
-
+// 判断name属性存在
 func (a *arrayObject) hasOwnPropertyStr(name string) bool {
 	if idx := strToIdx(name); idx >= 0 {
 		return idx < int64(len(a.values)) && a.values[idx] != nil && a.values[idx] != _undefined
@@ -318,15 +320,17 @@ func (a *arrayObject) hasOwnPropertyStr(name string) bool {
 		return a.baseObject.hasOwnPropertyStr(name)
 	}
 }
-
+// 容量扩展
 func (a *arrayObject) expand(idx int64) bool {
 	targetLen := idx + 1
 	if targetLen > int64(len(a.values)) {
 		if targetLen < int64(cap(a.values)) {
+			// 扩展的容量小于以前的大小，就截取到新容量
 			a.values = a.values[:targetLen]
 		} else {
 			if idx > 4096 && (a.objCount == 0 || idx/a.objCount > 10) {
 				//log.Println("Switching standard->sparse")
+				// 扩展容量大于4096情况下扩展失败，不明白为啥创建一个sa
 				sa := &sparseArrayObject{
 					baseObject:     a.baseObject,
 					length:         a.length,
@@ -342,11 +346,14 @@ func (a *arrayObject) expand(idx int64) bool {
 				newcap := int64(cap(a.values))
 				doublecap := newcap + newcap
 				if targetLen > doublecap {
+					// 当前容量翻倍还不满足，就用设置值
 					newcap = targetLen
 				} else {
 					if len(a.values) < 1024 {
+						// 容量小于1024情况下，就使用翻倍容量
 						newcap = doublecap
 					} else {
+						// 容量大于1024情况下，每次递增四分之一
 						for newcap < targetLen {
 							newcap += newcap / 4
 						}
@@ -360,7 +367,7 @@ func (a *arrayObject) expand(idx int64) bool {
 	}
 	return true
 }
-
+// 重新定义length
 func (r *Runtime) defineArrayLength(prop *valueProperty, descr propertyDescr, setter func(Value, bool) bool, throw bool) bool {
 	ret := true
 
@@ -394,7 +401,7 @@ Reject:
 
 	return ret
 }
-
+// 定义自己的属性
 func (a *arrayObject) defineOwnProperty(n Value, descr propertyDescr, throw bool) bool {
 	if idx := toIdx(n); idx >= 0 {
 		var existing Value
@@ -426,7 +433,7 @@ func (a *arrayObject) defineOwnProperty(n Value, descr propertyDescr, throw bool
 		return a.baseObject.defineOwnProperty(n, descr, throw)
 	}
 }
-
+// 删除属性
 func (a *arrayObject) _deleteProp(idx int64, throw bool) bool {
 	if idx < int64(len(a.values)) {
 		if v := a.values[idx]; v != nil {
@@ -443,14 +450,14 @@ func (a *arrayObject) _deleteProp(idx int64, throw bool) bool {
 	}
 	return true
 }
-
+// 删除属性
 func (a *arrayObject) delete(n Value, throw bool) bool {
 	if idx := toIdx(n); idx >= 0 {
 		return a._deleteProp(idx, throw)
 	}
 	return a.baseObject.delete(n, throw)
 }
-
+// 删除属性
 func (a *arrayObject) deleteStr(name string, throw bool) bool {
 	if idx := strToIdx(name); idx >= 0 {
 		return a._deleteProp(idx, throw)
@@ -472,7 +479,7 @@ func (a *arrayObject) export() interface{} {
 func (a *arrayObject) exportType() reflect.Type {
 	return reflectTypeArray
 }
-
+// 复制数据到数组
 func (a *arrayObject) setValuesFromSparse(items []sparseArrayItem) {
 	a.values = make([]Value, int(items[len(items)-1].idx+1))
 	for _, item := range items {

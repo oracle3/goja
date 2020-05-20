@@ -1,5 +1,5 @@
 package goja
-
+// Boolean.prototype.toString实现
 func (r *Runtime) booleanproto_toString(call FunctionCall) Value {
 	var b bool
 	switch o := call.This.(type) {
@@ -22,7 +22,7 @@ success:
 	}
 	return stringFalse
 }
-
+// Boolean.prototype.valueOf实现
 func (r *Runtime) booleanproto_valueOf(call FunctionCall) Value {
 	switch o := call.This.(type) {
 	case valueBool:
@@ -38,7 +38,7 @@ func (r *Runtime) booleanproto_valueOf(call FunctionCall) Value {
 	r.typeErrorResult(true, "Method Boolean.prototype.valueOf is called on incompatible receiver")
 	return nil
 }
-
+// Boolean类实现
 func (r *Runtime) initBoolean() {
 	r.global.BooleanPrototype = r.newPrimitiveObject(valueFalse, r.global.ObjectPrototype, classBoolean)
 	o := r.global.BooleanPrototype.self

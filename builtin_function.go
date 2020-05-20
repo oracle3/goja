@@ -3,7 +3,7 @@ package goja
 import (
 	"fmt"
 )
-
+// 构造一个匿名函数
 func (r *Runtime) builtin_Function(args []Value, proto *Object) *Object {
 	src := "(function anonymous("
 	if len(args) > 1 {
@@ -20,7 +20,8 @@ func (r *Runtime) builtin_Function(args []Value, proto *Object) *Object {
 
 	return r.toObject(r.eval(src, false, false, _undefined))
 }
-
+//Function.prototype.toString()
+//toString() 方法返回一个表示当前函数源代码的字符串。
 func (r *Runtime) functionproto_toString(call FunctionCall) Value {
 	obj := r.toObject(call.This)
 repeat:
@@ -49,7 +50,8 @@ func (r *Runtime) toValueArray(a Value) []Value {
 	}
 	return ret
 }
-
+//Function.prototype.apply()
+//apply() 方法调用一个具有给定this值的函数，以及作为一个数组（或类似数组对象）提供的参数。
 func (r *Runtime) functionproto_apply(call FunctionCall) Value {
 	f := r.toCallable(call.This)
 	var args []Value
@@ -61,7 +63,8 @@ func (r *Runtime) functionproto_apply(call FunctionCall) Value {
 		Arguments: args,
 	})
 }
-
+//Function.prototype.call()
+//call() 方法使用一个指定的 this 值和单独给出的一个或多个参数来调用一个函数。
 func (r *Runtime) functionproto_call(call FunctionCall) Value {
 	f := r.toCallable(call.This)
 	var args []Value
@@ -92,7 +95,7 @@ func (r *Runtime) boundCallable(target func(FunctionCall) Value, boundArgs []Val
 		})
 	}
 }
-
+// 构造bound的数据
 func (r *Runtime) boundConstruct(target func([]Value) *Object, boundArgs []Value) func([]Value) *Object {
 	if target == nil {
 		return nil
@@ -108,7 +111,9 @@ func (r *Runtime) boundConstruct(target func([]Value) *Object, boundArgs []Value
 		return target(a)
 	}
 }
-
+//Function.prototype.bind()
+//bind() 方法创建一个新的函数，在 bind() 被调用时，这个新函数的 this 被指定为 bind() 的第一个参数，
+//而其余参数将作为新函数的参数，供调用时使用。
 func (r *Runtime) functionproto_bind(call FunctionCall) Value {
 	obj := r.toObject(call.This)
 	f := obj.self
@@ -151,7 +156,7 @@ repeat:
 	//o.putStr("arguments", r.global.throwerProperty, false)
 	return v
 }
-
+// Function类的实现
 func (r *Runtime) initFunction() {
 	o := r.global.FunctionPrototype.self
 	o.(*nativeFuncObject).prototype = r.global.ObjectPrototype

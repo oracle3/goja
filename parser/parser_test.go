@@ -10,6 +10,7 @@ import (
 	"github.com/dop251/goja/file"
 )
 
+// 获取第一个错误信息
 func firstErr(err error) error {
 	switch err := err.(type) {
 	case ErrorList:
@@ -40,7 +41,7 @@ func testParse(src string) (parser *_parser, program *ast.Program, err error) {
 	program, err = parser.parse()
 	return
 }
-
+// 字符串解析测试
 func TestParseFile(t *testing.T) {
 	tt(t, func() {
 		_, err := ParseFile(nil, "", `/abc/`, 0)
@@ -53,9 +54,10 @@ func TestParseFile(t *testing.T) {
 		is(err, "(anonymous): Line 1:15 Illegal return statement")
 	})
 }
-
+// 函数测试
 func TestParseFunction(t *testing.T) {
 	tt(t, func() {
+		// 构造一个函数，并解析，检查返回的错误是否符合预期
 		test := func(prm, bdy string, expect interface{}) *ast.FunctionLiteral {
 			function, err := ParseFunction(prm, bdy)
 			is(firstErr(err), expect)
@@ -77,9 +79,10 @@ func TestParseFunction(t *testing.T) {
 		test("a, b,c,d", "{}", nil)
 	})
 }
-
+// 解析测试
 func TestParserErr(t *testing.T) {
 	tt(t, func() {
+		// 解析字符串，并判断返回的错误是否符合预期
 		test := func(input string, expect interface{}) (*ast.Program, *_parser) {
 			parser := newParser("", input)
 			program, err := parser.parse()
@@ -489,6 +492,7 @@ func TestParserErr(t *testing.T) {
 
 func TestParser(t *testing.T) {
 	tt(t, func() {
+		// 解析字符串，并比较错误信息
 		test := func(source string, chk interface{}) *ast.Program {
 			_, program, err := testParse(source)
 			is(firstErr(err), chk)
@@ -875,6 +879,7 @@ func TestParser(t *testing.T) {
 
 func Test_parseStringLiteral(t *testing.T) {
 	tt(t, func() {
+		// 解析字符串文本,比较解析结果和期望值
 		test := func(have, want string) {
 			have, err := parseStringLiteral(have)
 			is(err, nil)
@@ -942,7 +947,7 @@ func Test_parseStringLiteral(t *testing.T) {
 		test(`\x0`, `invalid escape: \x: len("0") != 2`)
 	})
 }
-
+// 数字解析测试
 func Test_parseNumberLiteral(t *testing.T) {
 	tt(t, func() {
 		test := func(input string, expect interface{}) {
@@ -961,6 +966,7 @@ func TestPosition(t *testing.T) {
 	tt(t, func() {
 		parser := newParser("", "// Lorem ipsum")
 
+		// 解析从1开始，不是0开始，因此错误
 		// Out of range, idx0 (error condition)
 		is(parser.slice(0, 1), "")
 		is(parser.slice(0, 10), "")

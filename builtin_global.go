@@ -16,7 +16,8 @@ const hexUpper = "0123456789ABCDEF"
 var (
 	parseFloatRegexp = regexp.MustCompile(`^([+-]?(?:Infinity|[0-9]*\.?[0-9]*(?:[eE][+-]?[0-9]+)?))`)
 )
-
+//isNaN() 函数用来确定一个值是否为NaN 。
+//注：isNaN函数内包含一些非常有趣的规则；你也可以使用 ECMAScript 2015 中定义的 Number.isNaN() 来判断。
 func (r *Runtime) builtin_isNaN(call FunctionCall) Value {
 	if math.IsNaN(call.Argument(0).ToFloat()) {
 		return valueTrue
@@ -24,14 +25,14 @@ func (r *Runtime) builtin_isNaN(call FunctionCall) Value {
 		return valueFalse
 	}
 }
-
+//parseInt(string, radix)   将一个字符串 string 转换为 radix 进制的整数， radix 为介于2-36之间的数。
 func (r *Runtime) builtin_parseInt(call FunctionCall) Value {
 	str := call.Argument(0).ToString().toTrimmedUTF8()
 	radix := int(toInt32(call.Argument(1)))
 	v, _ := parseInt(str, radix)
 	return v
 }
-
+//parseFloat() 函数解析一个参数（必要时先转换为字符串）并返回一个浮点数。
 func (r *Runtime) builtin_parseFloat(call FunctionCall) Value {
 	m := parseFloatRegexp.FindStringSubmatch(call.Argument(0).ToString().toTrimmedUTF8())
 	if len(m) == 2 {
@@ -52,7 +53,7 @@ func (r *Runtime) builtin_parseFloat(call FunctionCall) Value {
 	}
 	return _NaN
 }
-
+//该全局 isFinite() 函数用来判断被传入的参数值是否为一个有限数值（finite number）。在必要情况下，参数会首先转为一个数值。
 func (r *Runtime) builtin_isFinite(call FunctionCall) Value {
 	f := call.Argument(0).ToFloat()
 	if math.IsNaN(f) || math.IsInf(f, 0) {
@@ -215,27 +216,29 @@ func unhex(c byte) byte {
 	}
 	return 0
 }
-
+//decodeURI() 函数解码一个由encodeURI 先前创建的统一资源标识符（URI）或类似的例程。
 func (r *Runtime) builtin_decodeURI(call FunctionCall) Value {
 	uriString := call.Argument(0).ToString()
 	return r._decode(uriString, &uriReservedHash)
 }
-
+//decodeURIComponent() 方法用于解码由 encodeURIComponent 方法或者其它类似方法编码的部分统一资源标识符（URI）。
 func (r *Runtime) builtin_decodeURIComponent(call FunctionCall) Value {
 	uriString := call.Argument(0).ToString()
 	return r._decode(uriString, &emptyEscapeSet)
 }
-
+//encodeURI()  函数通过将特定字符的每个实例替换为一个、两个、三或四转义序列来对统一资源标识符 (URI) 进行编码
+//(该字符的 UTF-8 编码仅为四转义序列)由两个 "代理" 字符组成)。
 func (r *Runtime) builtin_encodeURI(call FunctionCall) Value {
 	uriString := call.Argument(0).ToString()
 	return r._encode(uriString, &uriReservedUnescapedHash)
 }
-
+//encodeURIComponent()是对统一资源标识符（URI）的组成部分进行编码的方法。
+//它使用一到四个转义序列来表示字符串中的每个字符的UTF-8编码（只有由两个Unicode代理区字符组成的字符才用四个转义字符编码）。
 func (r *Runtime) builtin_encodeURIComponent(call FunctionCall) Value {
 	uriString := call.Argument(0).ToString()
 	return r._encode(uriString, &uriUnescaped)
 }
-
+//废弃的 escape() 方法生成新的由十六进制转义序列替换的字符串. 使用 encodeURI 或 encodeURIComponent 代替.
 func (r *Runtime) builtin_escape(call FunctionCall) Value {
 	s := call.Argument(0).ToString()
 	var sb strings.Builder
@@ -259,7 +262,9 @@ func (r *Runtime) builtin_escape(call FunctionCall) Value {
 	}
 	return asciiString(sb.String())
 }
-
+//已废弃的unescape() 方法计算生成一个新的字符串，其中的十六进制转义序列将被其表示的字符替换。
+//上述的转义序列就像escape里介绍的一样。因为 unescape 已经废弃，
+//建议使用 decodeURI或者decodeURIComponent 替代本方法。
 func (r *Runtime) builtin_unescape(call FunctionCall) Value {
 	s := call.Argument(0).ToString()
 	l := s.length()
@@ -323,7 +328,7 @@ func (r *Runtime) builtin_unescape(call FunctionCall) Value {
 
 	return asciiString(asciiBuf)
 }
-
+// 全局函数注册
 func (r *Runtime) initGlobalObject() {
 	o := r.globalObject.self
 	o._putProp("NaN", _NaN, false, false, false)
@@ -348,7 +353,7 @@ func (r *Runtime) initGlobalObject() {
 	// TODO: Annex B
 
 }
-
+// 十六进制数据转十进制
 func digitVal(d byte) int {
 	var v byte
 	switch {
@@ -365,6 +370,7 @@ func digitVal(d byte) int {
 }
 
 // ECMAScript compatible version of strconv.ParseInt
+//ECMAScript兼容版本strconv.ParseInt
 func parseInt(s string, base int) (Value, error) {
 	var n int64
 	var err error
@@ -484,6 +490,7 @@ func parseLargeInt(n float64, s string, base int, sign bool) (Value, error) {
 		n = -n
 	}
 	// We know it can't be represented as int, so use valueFloat instead of floatToValue
+	//我们知道它不能表示为int，所以使用valueFloat而不是floatToValue
 	return valueFloat(n), nil
 }
 

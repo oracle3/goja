@@ -360,7 +360,7 @@ func (r *Runtime) objectproto_propertyIsEnumerable(call FunctionCall) Value {
 	}
 	return valueTrue
 }
-
+// 对象转字符串
 func (r *Runtime) objectproto_toString(call FunctionCall) Value {
 	switch o := call.This.(type) {
 	case valueNull:

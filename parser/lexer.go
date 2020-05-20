@@ -622,7 +622,7 @@ func parseNumberLiteral(literal string) (value interface{}, err error) {
 error:
 	return nil, errors.New("Illegal numeric literal")
 }
-// 解析注释字符串文本
+// 解析字符串文本
 func parseStringLiteral(literal string) (string, error) {
 	// Best case scenario...
 	if literal == "" {

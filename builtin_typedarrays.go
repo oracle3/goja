@@ -33,7 +33,8 @@ func (r *Runtime) builtin_ArrayBuffer(args []Value, proto *Object) *Object {
 	}
 	return b.val
 }
-
+//ArrayBuffer.prototype.byteLength
+//byteLength访问器属性表示一个ArrayBuffer 对象的字节长度。
 func (r *Runtime) arrayBufferProto_getByteLength(call FunctionCall) Value {
 	o := r.toObject(call.This)
 	if b, ok := o.self.(*objectArrayBuffer); ok {
@@ -95,7 +96,8 @@ func (r *Runtime) createArrayBufferProto(val *Object) objectImpl {
 	b._putProp("slice", r.newNativeFunc(r.arrayBufferProto_slice, nil, "slice", nil, 2), true, false, true)
 	return b
 }
-
+//ArrayBuffer 对象用来表示通用的、固定长度的原始二进制数据缓冲区。
+//它是一个字节数组，通常在其他语言中称为“byte array”。
 func (r *Runtime) initTypedArrays() {
 
 	r.global.ArrayBufferPrototype = r.newLazyObject(r.createArrayBufferProto)
