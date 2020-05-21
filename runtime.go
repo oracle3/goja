@@ -955,6 +955,25 @@ to a Number, String, Boolean or Object.
 
 Note that the underlying type is not lost, calling Export() returns the original Go value. This applies to all
 reflect based types.
+ToValue将Go值转换为JavaScript值。
+
+基本类型（int和uint，float，string，bool）将转换为相应的JavaScript原语。
+
+func（FunctionCall）值被视为本机JavaScript函数。
+
+map [string] interface {}被转换为一个宿主对象，该宿主对象在很大程度上类似于JavaScript对象。
+
+[] interface {}被转换为行为类似于JavaScript Array的宿主对象，但是它是不可扩展的，因为扩展它可以更改指针，从而使其与原始对象分离。
+
+* [] interface {}与上面相同，但是数组变得可扩展。
+
+函数包装在本机JavaScript函数中。调用时，参数将自动转换为适当的Go类型。如果无法进行转换，则抛出TypeError。
+
+切片类型将转换为行为类似于不可扩展Array的基于通用反射的宿主对象。
+
+任何其他类型都将转换为基于通用反射的宿主对象。根据底层类型，其行为类似于数字，字符串，布尔值或对象。
+
+请注意，基础类型不会丢失，调用Export（）会返回原始的Go值。这适用于所有基于反射的类型。
 */
 func (r *Runtime) ToValue(i interface{}) Value {
 	switch i := i.(type) {
