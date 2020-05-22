@@ -3,7 +3,7 @@ package token
 const (
 	_ Token = iota
 
-	ILLEGAL
+	ILLEGAL // 非法字符
 	EOF
 	COMMENT
 	KEYWORD

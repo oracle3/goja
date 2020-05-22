@@ -21,7 +21,7 @@ type _chr struct {
 }
 
 var matchIdentifier = regexp.MustCompile(`^[$_\p{L}][$_\p{L}\d}]*$`)
-// 是否是数字
+// 是否是10进制数字
 func isDecimalDigit(chr rune) bool {
 	return '0' <= chr && chr <= '9'
 }
@@ -369,7 +369,7 @@ func (self *_parser) chrAt(index int) _chr {
 		width: width,
 	}
 }
-// 获取下一个偏移位置
+// 获取下一个字符
 func (self *_parser) _peek() rune {
 	if self.offset+1 < self.length {
 		return rune(self.str[self.offset+1])

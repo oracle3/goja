@@ -68,7 +68,7 @@ func (self Error) Error() string {
 		self.Message,
 	)
 }
-// 添加错误信息到错误列表，并返回
+// 添加错误信息到错误列表，并返回最后一个错误
 func (self *_parser) error(place interface{}, msg string, msgValues ...interface{}) *Error {
 	idx := file.Idx(0)
 	switch place := place.(type) {
@@ -89,7 +89,7 @@ func (self *_parser) error(place interface{}, msg string, msgValues ...interface
 	self.errors.Add(position, msg)
 	return self.errors[len(self.errors)-1]
 }
-
+// 添加错误信息
 func (self *_parser) errorUnexpected(idx file.Idx, chr rune) error {
 	if chr == -1 {
 		return self.error(idx, err_UnexpectedEndOfInput)
@@ -124,15 +124,18 @@ func (self *_parser) errorUnexpectedToken(tkn token.Token) error {
 type ErrorList []*Error
 
 // Add adds an Error with given position and message to an ErrorList.
+//Add将具有给定位置和消息的Error添加到ErrorList。
 func (self *ErrorList) Add(position file.Position, msg string) {
 	*self = append(*self, &Error{position, msg})
 }
 
 // Reset resets an ErrorList to no errors.
+//Reset()会将ErrorList重置为没有错误。
 func (self *ErrorList) Reset() { *self = (*self)[0:0] }
-
+// sort.Sort排序的三个接口实现
 func (self ErrorList) Len() int      { return len(self) }
 func (self ErrorList) Swap(i, j int) { self[i], self[j] = self[j], self[i] }
+// 先比较文件名，然后比较行数和列数
 func (self ErrorList) Less(i, j int) bool {
 	x := &self[i].Position
 	y := &self[j].Position
@@ -149,12 +152,13 @@ func (self ErrorList) Less(i, j int) bool {
 	}
 	return false
 }
-
+// 对错误列表排序
 func (self ErrorList) Sort() {
 	sort.Sort(self)
 }
 
 // Error implements the Error interface.
+// Error实现Error接口。
 func (self ErrorList) Error() string {
 	switch len(self) {
 	case 0:
@@ -167,6 +171,8 @@ func (self ErrorList) Error() string {
 
 // Err returns an error equivalent to this ErrorList.
 // If the list is empty, Err returns nil.
+// Err返回与此ErrorList等效的错误。
+//如果列表为空，则Err返回nil。
 func (self ErrorList) Err() error {
 	if len(self) == 0 {
 		return nil

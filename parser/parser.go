@@ -238,7 +238,7 @@ func (self *_parser) semicolon() {
 func (self *_parser) idxOf(offset int) file.Idx {
 	return file.Idx(self.base + offset)
 }
-// 如果是预期标签则获取下一个
+// 如果是预期标签则获取下一个标签
 func (self *_parser) expect(value token.Token) file.Idx {
 	idx := self.idx
 	if self.token != value {

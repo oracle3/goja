@@ -25,7 +25,7 @@ func (self *_parser) parseEmptyStatement() ast.Statement {
 	idx := self.expect(token.SEMICOLON)
 	return &ast.EmptyStatement{Semicolon: idx}
 }
-// 解析语句列表
+// 循环解析语句列表
 func (self *_parser) parseStatementList() (list []ast.Statement) {
 	for self.token != token.RIGHT_BRACE && self.token != token.EOF {
 		list = append(list, self.parseStatement())
@@ -314,6 +314,9 @@ func (self *_parser) parseSwitchStatement() ast.Statement {
 	return node
 }
 // 分析with语句
+//with语句的作用是将代码的作用域设置到一个特定的作用域中
+//使用with关键字的目的是为了简化多次编写访问同一对象的工作
+// http://luopq.com/2016/02/14/js-with-keyword/
 func (self *_parser) parseWithStatement() ast.Statement {
 	self.expect(token.WITH)
 	self.expect(token.LEFT_PARENTHESIS)
