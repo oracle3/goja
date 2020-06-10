@@ -40,7 +40,7 @@ func load(vm *goja.Runtime, call goja.FunctionCall) goja.Value {
 	}
 	return v
 }
-
+// 获得一个随机数
 func newRandSource() goja.RandSource {
 	var seed int64
 	if err := binary.Read(crand.Reader, binary.LittleEndian, &seed); err != nil {

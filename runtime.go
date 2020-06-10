@@ -536,7 +536,7 @@ func (r *Runtime) builtin_Number(call FunctionCall) Value {
 		return intToValue(0)
 	}
 }
-//根据输入创建一个number值
+//根据输入创建一个number对象
 func (r *Runtime) builtin_newNumber(args []Value) *Object {
 	var v Value
 	if len(args) > 0 {
@@ -546,7 +546,7 @@ func (r *Runtime) builtin_newNumber(args []Value) *Object {
 	}
 	return r.newPrimitiveObject(v, r.global.NumberPrototype, classNumber)
 }
-
+//根据输入创建一个bool值
 func (r *Runtime) builtin_Boolean(call FunctionCall) Value {
 	if len(call.Arguments) > 0 {
 		if call.Arguments[0].ToBoolean() {
@@ -558,7 +558,7 @@ func (r *Runtime) builtin_Boolean(call FunctionCall) Value {
 		return valueFalse
 	}
 }
-
+//根据输入创建一个bool对象
 func (r *Runtime) builtin_newBoolean(args []Value) *Object {
 	var v Value
 	if len(args) > 0 {
@@ -572,7 +572,7 @@ func (r *Runtime) builtin_newBoolean(args []Value) *Object {
 	}
 	return r.newPrimitiveObject(v, r.global.BooleanPrototype, classBoolean)
 }
-
+//toString()方法返回一个字符串，该字符串表示指定的Error对象.
 func (r *Runtime) error_toString(call FunctionCall) Value {
 	obj := call.This.ToObject(r).self
 	msg := obj.getStr("message")
@@ -594,7 +594,7 @@ func (r *Runtime) error_toString(call FunctionCall) Value {
 		}
 	}
 }
-
+// 创建一个error对象
 func (r *Runtime) builtin_Error(args []Value, proto *Object) *Object {
 	obj := r.newBaseObject(proto, classError)
 	if len(args) > 0 && args[0] != _undefined {
@@ -775,6 +775,8 @@ func New() *Runtime {
 // Compile creates an internal representation of the JavaScript code that can be later run using the Runtime.RunProgram()
 // method. This representation is not linked to a runtime in any way and can be run in multiple runtimes (possibly
 // at the same time).
+//Compile创建一个JavaScript代码的内部表示，稍后可以使用运行时.RunProgram方法。
+//此表示不以任何方式链接到运行时，并且可以在多个运行时（可能同时）中运行。
 func Compile(name, src string, strict bool) (*Program, error) {
 	return compile(name, src, strict, false)
 }
@@ -881,6 +883,7 @@ func (r *Runtime) RunScript(name, src string) (Value, error) {
 }
 
 // RunProgram executes a pre-compiled (see Compile()) code in the global context.
+//RunProgram在全局上下文中执行预编译（参见Compile（））代码。
 func (r *Runtime) RunProgram(p *Program) (result Value, err error) {
 	defer func() {
 		if x := recover(); x != nil {

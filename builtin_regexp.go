@@ -6,7 +6,7 @@ import (
 	"github.com/dop251/goja/parser"
 	"regexp"
 )
-
+// 创建一个正则表达式对象
 func (r *Runtime) newRegexpObject(proto *Object) *regexpObject {
 	v := &Object{runtime: r}
 
@@ -19,7 +19,7 @@ func (r *Runtime) newRegexpObject(proto *Object) *regexpObject {
 	o.init()
 	return o
 }
-
+// 创建一个正则表达式对象
 func (r *Runtime) newRegExpp(pattern regexpPattern, patternStr valueString, global, ignoreCase, multiline bool, proto *Object) *Object {
 	o := r.newRegexpObject(proto)
 
@@ -31,7 +31,7 @@ func (r *Runtime) newRegExpp(pattern regexpPattern, patternStr valueString, glob
 
 	return o.val
 }
-
+// 编译正则表达式
 func compileRegexp(patternStr, flags string) (p regexpPattern, global, ignoreCase, multiline bool, err error) {
 
 	if flags != "" {

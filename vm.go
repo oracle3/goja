@@ -289,6 +289,7 @@ func (vm *vm) run() {
 		vm.prg.code[vm.pc].exec(vm)
 		ticks++
 		if ticks > 10000 {
+			//Gosched产生处理器，允许运行其他goroutine。它不会挂起当前goroutine，因此执行将自动恢复。
 			runtime.Gosched()
 			ticks = 0
 		}
@@ -316,7 +317,7 @@ func (vm *vm) Interrupt(v interface{}) {
 func (vm *vm) ClearInterrupt() {
 	atomic.StoreUint32(&vm.interrupted, 0)
 }
-// 展开上下文堆栈
+// 获取指定位置的上下文堆栈
 func (vm *vm) captureStack(stack []stackFrame, ctxOffset int) []stackFrame {
 	// Unroll the context stack
 	stack = append(stack, stackFrame{prg: vm.prg, pc: vm.pc, funcName: vm.funcName})
@@ -1769,7 +1770,7 @@ func (vm *vm) _nativeCall(f *nativeFuncObject, n int) {
 	vm.sp -= n + 1
 	vm.pc++
 }
-
+// 清除当前指针后面的堆栈
 func (vm *vm) clearStack() {
 	stackTail := vm.stack[vm.sp:]
 	for i := range stackTail {
