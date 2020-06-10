@@ -910,7 +910,7 @@ func (r *Runtime) createDate(val *Object) objectImpl {
 
 	return o
 }
-
+// 构造懒加载对象
 func (r *Runtime) newLazyObject(create func(*Object) objectImpl) *Object {
 	val := &Object{runtime: r}
 	o := &lazyObject{

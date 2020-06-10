@@ -382,7 +382,7 @@ func (r *Runtime) objectproto_toLocaleString(call FunctionCall) Value {
 func (r *Runtime) objectproto_valueOf(call FunctionCall) Value {
 	return call.This.ToObject(r)
 }
-
+// 注入js的全局函数
 func (r *Runtime) initObject() {
 	o := r.global.ObjectPrototype.self
 	o._putProp("toString", r.newNativeFunc(r.objectproto_toString, nil, "toString", nil, 0), true, false, true)

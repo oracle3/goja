@@ -40,7 +40,7 @@ repeat:
 	r.typeErrorResult(true, "Object is not a function")
 	return nil
 }
-
+// 把a转换为value数组
 func (r *Runtime) toValueArray(a Value) []Value {
 	obj := r.toObject(a)
 	l := toUInt32(obj.self.getStr("length"))
@@ -52,6 +52,7 @@ func (r *Runtime) toValueArray(a Value) []Value {
 }
 //Function.prototype.apply()
 //apply() 方法调用一个具有给定this值的函数，以及作为一个数组（或类似数组对象）提供的参数。
+//call()方法的作用和 apply() 方法类似，区别就是call()方法接受的是参数列表，而apply()方法接受的是一个参数数组。
 func (r *Runtime) functionproto_apply(call FunctionCall) Value {
 	f := r.toCallable(call.This)
 	var args []Value
@@ -76,7 +77,7 @@ func (r *Runtime) functionproto_call(call FunctionCall) Value {
 		Arguments: args,
 	})
 }
-
+// 构造一个回调函数
 func (r *Runtime) boundCallable(target func(FunctionCall) Value, boundArgs []Value) func(FunctionCall) Value {
 	var this Value
 	var args []Value
@@ -95,7 +96,7 @@ func (r *Runtime) boundCallable(target func(FunctionCall) Value, boundArgs []Val
 		})
 	}
 }
-// 构造bound的数据
+// 返回一个构造函数
 func (r *Runtime) boundConstruct(target func([]Value) *Object, boundArgs []Value) func([]Value) *Object {
 	if target == nil {
 		return nil
@@ -156,7 +157,7 @@ repeat:
 	//o.putStr("arguments", r.global.throwerProperty, false)
 	return v
 }
-// Function类的实现
+// Function全局类的实现
 func (r *Runtime) initFunction() {
 	o := r.global.FunctionPrototype.self
 	o.(*nativeFuncObject).prototype = r.global.ObjectPrototype

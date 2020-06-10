@@ -170,7 +170,7 @@ func (e *defaultDeleteExpr) emitGetter(putOnStack bool) {
 		e.c.emit(loadVal(e.c.p.defineLiteralValue(valueTrue)))
 	}
 }
-
+//编译表达式
 func (c *compiler) compileExpression(v ast.Expression) compiledExpr {
 	// log.Printf("compileExpression: %T", v)
 	switch v := v.(type) {
@@ -240,7 +240,7 @@ func (c *compiler) compileExpression(v ast.Expression) compiledExpr {
 func (e *baseCompiledExpr) constant() bool {
 	return false
 }
-
+// 初始化
 func (e *baseCompiledExpr) init(c *compiler, idx file.Idx) {
 	e.c = c
 	e.offset = int(idx) - 1
@@ -313,7 +313,7 @@ func (e *compiledIdentifierExpr) emitGetterOrRef() {
 		}
 	}
 }
-
+// 分类本地，全局结构，全局变量，动态变量，结构
 func (c *compiler) emitVarSetter1(name string, offset int, emitRight func(isRef bool)) {
 	if c.scope.strict {
 		c.checkIdentifierLName(name, offset)
@@ -346,7 +346,7 @@ func (c *compiler) emitVarSetter1(name string, offset int, emitRight func(isRef 
 		}
 	}
 }
-
+// 变量登记，常量计算
 func (c *compiler) emitVarSetter(name string, offset int, valueExpr compiledExpr) {
 	c.emitVarSetter1(name, offset, func(bool) {
 		c.emitExpr(valueExpr, true)
@@ -356,7 +356,7 @@ func (c *compiler) emitVarSetter(name string, offset int, valueExpr compiledExpr
 func (e *compiledVariableExpr) emitSetter(valueExpr compiledExpr) {
 	e.c.emitVarSetter(e.name, e.offset, valueExpr)
 }
-
+//变量登记，常量计算
 func (e *compiledIdentifierExpr) emitSetter(valueExpr compiledExpr) {
 	e.c.emitVarSetter(e.name, e.offset, valueExpr)
 }
@@ -857,7 +857,7 @@ func (e *compiledFunctionLiteral) emitGetter(putOnStack bool) {
 		e.c.emit(pop)
 	}
 }
-
+// 编译函数表达式
 func (c *compiler) compileFunctionLiteral(v *ast.FunctionLiteral, isExpr bool) compiledExpr {
 	if v.Name != nil && c.scope.strict {
 		c.checkIdentifierLName(v.Name.Name, int(v.Name.Idx)-1)
@@ -909,7 +909,7 @@ func (e *compiledNewExpr) emitGetter(putOnStack bool) {
 		e.c.emit(pop)
 	}
 }
-
+//编译new表达式
 func (c *compiler) compileNewExpression(v *ast.NewExpression) compiledExpr {
 	args := make([]compiledExpr, len(v.ArgumentList))
 	for i, expr := range v.ArgumentList {
@@ -931,7 +931,7 @@ func (e *compiledSequenceExpr) emitGetter(putOnStack bool) {
 		e.sequence[len(e.sequence)-1].emitGetter(putOnStack)
 	}
 }
-
+//编译序列表达式
 func (c *compiler) compileSequenceExpression(v *ast.SequenceExpression) compiledExpr {
 	s := make([]compiledExpr, len(v.Sequence))
 	for i, expr := range v.Sequence {
@@ -947,7 +947,7 @@ func (c *compiler) compileSequenceExpression(v *ast.SequenceExpression) compiled
 	r.init(c, idx)
 	return r
 }
-
+// 计算常量表达式的时候出错退出
 func (c *compiler) emitThrow(v Value) {
 	if o, ok := v.(*Object); ok {
 		t := o.self.getStr("name").String()
@@ -967,7 +967,7 @@ func (c *compiler) emitThrow(v Value) {
 	}
 	panic(fmt.Errorf("Unknown exception type thrown while evaliating constant expression: %s", v.String()))
 }
-
+// 计算常量表达式
 func (c *compiler) emitConst(expr compiledExpr, putOnStack bool) {
 	v, ex := c.evalConst(expr)
 	if ex == nil {
@@ -978,7 +978,7 @@ func (c *compiler) emitConst(expr compiledExpr, putOnStack bool) {
 		c.emitThrow(ex.val)
 	}
 }
-
+// 计算常量表达式
 func (c *compiler) emitExpr(expr compiledExpr, putOnStack bool) {
 	if expr.constant() {
 		c.emitConst(expr, putOnStack)
@@ -986,7 +986,7 @@ func (c *compiler) emitExpr(expr compiledExpr, putOnStack bool) {
 		expr.emitGetter(putOnStack)
 	}
 }
-
+// 执行const
 func (c *compiler) evalConst(expr compiledExpr) (Value, *Exception) {
 	if expr, ok := expr.(*compiledLiteral); ok {
 		return expr.val, nil
@@ -1088,7 +1088,7 @@ end:
 		e.c.emit(pop)
 	}
 }
-
+//编译一元表达式
 func (c *compiler) compileUnaryExpression(v *ast.UnaryExpression) compiledExpr {
 	r := &compiledUnaryExpr{
 		operand:  c.compileExpression(v.Operand),
@@ -1110,7 +1110,7 @@ func (e *compiledConditionalExpr) emitGetter(putOnStack bool) {
 	e.alternate.emitGetter(putOnStack)
 	e.c.p.code[j1] = jump(len(e.c.p.code) - j1)
 }
-
+//编译条件表达式
 func (c *compiler) compileConditionalExpression(v *ast.ConditionalExpression) compiledExpr {
 	r := &compiledConditionalExpr{
 		test:       c.compileExpression(v.Test),
@@ -1267,7 +1267,7 @@ func (e *compiledBinaryExpr) emitGetter(putOnStack bool) {
 		e.c.emit(pop)
 	}
 }
-
+//编译二进制表达式
 func (c *compiler) compileBinaryExpression(v *ast.BinaryExpression) compiledExpr {
 
 	switch v.Operator {
@@ -1285,7 +1285,7 @@ func (c *compiler) compileBinaryExpression(v *ast.BinaryExpression) compiledExpr
 	r.init(c, v.Idx0())
 	return r
 }
-
+//编译逻辑或
 func (c *compiler) compileLogicalOr(left, right ast.Expression, idx file.Idx) compiledExpr {
 	r := &compiledLogicalOr{
 		left:  c.compileExpression(left),
@@ -1294,7 +1294,7 @@ func (c *compiler) compileLogicalOr(left, right ast.Expression, idx file.Idx) co
 	r.init(c, idx)
 	return r
 }
-
+//编译逻辑与
 func (c *compiler) compileLogicalAnd(left, right ast.Expression, idx file.Idx) compiledExpr {
 	r := &compiledLogicalAnd{
 		left:  c.compileExpression(left),
@@ -1320,7 +1320,7 @@ func (e *compiledVariableExpr) emitGetter(putOnStack bool) {
 		}
 	}
 }
-
+// 编译变量表达式
 func (c *compiler) compileVariableExpression(v *ast.VariableExpression) compiledExpr {
 	r := &compiledVariableExpr{
 		name:        v.Name,
@@ -1354,7 +1354,7 @@ func (e *compiledObjectLiteral) emitGetter(putOnStack bool) {
 		e.c.emit(pop)
 	}
 }
-
+//编译object表达式
 func (c *compiler) compileObjectLiteral(v *ast.ObjectLiteral) compiledExpr {
 	r := &compiledObjectLiteral{
 		expr: v,
@@ -1377,7 +1377,7 @@ func (e *compiledArrayLiteral) emitGetter(putOnStack bool) {
 		e.c.emit(pop)
 	}
 }
-
+//编译array表达式
 func (c *compiler) compileArrayLiteral(v *ast.ArrayLiteral) compiledExpr {
 	r := &compiledArrayLiteral{
 		expr: v,
@@ -1401,7 +1401,7 @@ func (e *compiledRegexpLiteral) emitGetter(putOnStack bool) {
 		})
 	}
 }
-
+//编译正则表达式
 func (c *compiler) compileRegexpLiteral(v *ast.RegExpLiteral) compiledExpr {
 	r := &compiledRegexpLiteral{
 		expr: v,
@@ -1464,7 +1464,7 @@ func (e *compiledCallExpr) deleteExpr() compiledExpr {
 	r.init(e.c, file.Idx(e.offset+1))
 	return r
 }
-
+// 编译call表达式
 func (c *compiler) compileCallExpression(v *ast.CallExpression) compiledExpr {
 
 	args := make([]compiledExpr, len(v.ArgumentList))
@@ -1479,7 +1479,7 @@ func (c *compiler) compileCallExpression(v *ast.CallExpression) compiledExpr {
 	r.init(c, v.LeftParenthesis)
 	return r
 }
-
+//编译标识符表达式
 func (c *compiler) compileIdentifierExpression(v *ast.Identifier) compiledExpr {
 	if c.scope.strict {
 		c.checkIdentifierName(v.Name, int(v.Idx)-1)
@@ -1492,9 +1492,10 @@ func (c *compiler) compileIdentifierExpression(v *ast.Identifier) compiledExpr {
 	r.init(c, v.Idx0())
 	return r
 }
-
+//编译数字文字
 func (c *compiler) compileNumberLiteral(v *ast.NumberLiteral) compiledExpr {
 	if c.scope.strict && octalRegexp.MatchString(v.Literal) {
+		//严格模式下不允许使用八进制文字
 		c.throwSyntaxError(int(v.Idx)-1, "Octal literals are not allowed in strict mode")
 		panic("Unreachable")
 	}
@@ -1513,7 +1514,7 @@ func (c *compiler) compileNumberLiteral(v *ast.NumberLiteral) compiledExpr {
 	r.init(c, v.Idx0())
 	return r
 }
-
+//编译字符串
 func (c *compiler) compileStringLiteral(v *ast.StringLiteral) compiledExpr {
 	r := &compiledLiteral{
 		val: newStringValue(v.Value),
@@ -1521,7 +1522,7 @@ func (c *compiler) compileStringLiteral(v *ast.StringLiteral) compiledExpr {
 	r.init(c, v.Idx0())
 	return r
 }
-
+//编译布尔
 func (c *compiler) compileBooleanLiteral(v *ast.BooleanLiteral) compiledExpr {
 	var val Value
 	if v.Value {
@@ -1536,7 +1537,7 @@ func (c *compiler) compileBooleanLiteral(v *ast.BooleanLiteral) compiledExpr {
 	r.init(c, v.Idx0())
 	return r
 }
-
+//编译赋值表达式
 func (c *compiler) compileAssignExpression(v *ast.AssignExpression) compiledExpr {
 	// log.Printf("compileAssignExpression(): %+v", v)
 

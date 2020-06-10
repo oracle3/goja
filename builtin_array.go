@@ -199,7 +199,7 @@ func (r *Runtime) arrayproto_toLocaleString(call FunctionCall) Value {
 	}
 
 }
-
+//合并item数组到a数组
 func (r *Runtime) arrayproto_concat_append(a *Object, item Value) {
 	descr := propertyDescr{
 		Writable:     FLAG_TRUE,

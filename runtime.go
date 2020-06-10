@@ -232,11 +232,11 @@ func (e *Exception) Error() string {
 func (e *Exception) Value() Value {
 	return e.val
 }
-
+// 添加到全局对象中
 func (r *Runtime) addToGlobal(name string, value Value) {
 	r.globalObject.self._putProp(name, value, true, false, true)
 }
-
+// 初始化
 func (r *Runtime) init() {
 	r.rand = rand.Float64
 	r.now = time.Now
@@ -313,7 +313,7 @@ func (r *Runtime) newArray(prototype *Object) (a *arrayObject) {
 func (r *Runtime) newArrayObject() *arrayObject {
 	return r.newArray(r.global.ArrayPrototype)
 }
-
+// 构造一个新的数组对象
 func (r *Runtime) newArrayValues(values []Value) *Object {
 	v := &Object{runtime: r}
 
@@ -335,7 +335,7 @@ func (r *Runtime) newArrayLength(l int64) *Object {
 	a.self.putStr("length", intToValue(l), true)
 	return a
 }
-
+// 构建基础对象
 func (r *Runtime) newBaseObject(proto *Object, class string) (o *baseObject) {
 	v := &Object{runtime: r}
 
@@ -348,7 +348,7 @@ func (r *Runtime) newBaseObject(proto *Object, class string) (o *baseObject) {
 	o.init()
 	return
 }
-
+// 构建基础对象
 func (r *Runtime) NewObject() (v *Object) {
 	return r.newBaseObject(r.global.ObjectPrototype, classObject).val
 }
@@ -389,7 +389,7 @@ func (r *Runtime) newFunc(name string, len int, strict bool) (f *funcObject) {
 	}
 	return
 }
-
+// 添加一个原生函数
 func (r *Runtime) newNativeFuncObj(v *Object, call func(FunctionCall) Value, construct func(args []Value) *Object, name string, proto *Object, length int) *nativeFuncObject {
 	f := &nativeFuncObject{
 		baseFuncObject: baseFuncObject{
@@ -442,7 +442,7 @@ func (r *Runtime) newNativeConstructor(call func(ConstructorCall) *Object, name 
 
 	return v
 }
-
+// 构造原生函数
 func (r *Runtime) newNativeFunc(call func(FunctionCall) Value, construct func(args []Value) *Object, name string, proto *Object, length int) *Object {
 	v := &Object{runtime: r}
 
@@ -466,7 +466,7 @@ func (r *Runtime) newNativeFunc(call func(FunctionCall) Value, construct func(ar
 	}
 	return v
 }
-
+// 创建原生函数构造对象
 func (r *Runtime) newNativeFuncConstructObj(v *Object, construct func(args []Value, proto *Object) *Object, name string, proto *Object, length int) *nativeFuncObject {
 	f := &nativeFuncObject{
 		baseFuncObject: baseFuncObject{
@@ -514,7 +514,7 @@ func (r *Runtime) newNativeFuncConstructProto(construct func(args []Value, proto
 	}
 	return v
 }
-
+// 创建原始对象
 func (r *Runtime) newPrimitiveObject(value Value, proto *Object, class string) *Object {
 	v := &Object{runtime: r}
 
@@ -528,7 +528,7 @@ func (r *Runtime) newPrimitiveObject(value Value, proto *Object, class string) *
 	o.init()
 	return v
 }
-
+// 根据输入创建一个number值
 func (r *Runtime) builtin_Number(call FunctionCall) Value {
 	if len(call.Arguments) > 0 {
 		return call.Arguments[0].ToNumber()
@@ -536,7 +536,7 @@ func (r *Runtime) builtin_Number(call FunctionCall) Value {
 		return intToValue(0)
 	}
 }
-
+//根据输入创建一个number值
 func (r *Runtime) builtin_newNumber(args []Value) *Object {
 	var v Value
 	if len(args) > 0 {
@@ -602,7 +602,7 @@ func (r *Runtime) builtin_Error(args []Value, proto *Object) *Object {
 	}
 	return obj.val
 }
-
+// 调用对象的构造函数
 func (r *Runtime) builtin_new(construct *Object, args []Value) *Object {
 repeat:
 	switch f := construct.self.(type) {
@@ -637,7 +637,7 @@ func (r *Runtime) builtin_thrower(call FunctionCall) Value {
 	r.typeErrorResult(true, "'caller', 'callee', and 'arguments' properties may not be accessed on strict mode functions or the arguments objects for calls to them")
 	return nil
 }
-
+// 评估执行，返回结果
 func (r *Runtime) eval(src string, direct, strict bool, this Value) Value {
 
 	p, err := r.compile("<eval>", src, strict, true)
@@ -677,13 +677,13 @@ func (r *Runtime) builtin_eval(call FunctionCall) Value {
 	}
 	return call.Arguments[0]
 }
-
+// 构造函数包装
 func (r *Runtime) constructWrap(construct func(args []Value, proto *Object) *Object, proto *Object) func(call FunctionCall) Value {
 	return func(call FunctionCall) Value {
 		return construct(call.Arguments, proto)
 	}
 }
-
+// 查询可调用的函数并返回
 func (r *Runtime) toCallable(v Value) func(FunctionCall) Value {
 	if call, ok := r.toObject(v).self.assertCallable(); ok {
 		return call
@@ -765,6 +765,7 @@ func (r *Runtime) toBoolean(b bool) Value {
 
 // New creates an instance of a Javascript runtime that can be used to run code. Multiple instances may be created and
 // used simultaneously, however it is not possible to pass JS values across runtimes.
+//New()创建可用于运行代码的Javascript运行时实例。可以同时创建和使用多个实例，但是不可能跨运行时传递JS值。
 func New() *Runtime {
 	r := &Runtime{}
 	r.init()
@@ -795,7 +796,7 @@ func MustCompile(name, src string, strict bool) *Program {
 
 	return prg
 }
-
+// 编译js，返回编译后的语法树
 func compile(name, src string, strict, eval bool) (p *Program, err error) {
 	prg, err1 := parser.ParseFile(nil, name, src, 0)
 	if err1 != nil {
@@ -823,7 +824,7 @@ func compile(name, src string, strict, eval bool) (p *Program, err error) {
 
 	return
 }
-
+// 编译语法树
 func compileAST(prg *js_ast.Program, strict, eval bool) (p *Program, err error) {
 	c := newCompiler()
 	c.scope.strict = strict

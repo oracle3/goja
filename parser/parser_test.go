@@ -21,7 +21,7 @@ func firstErr(err error) error {
 
 var matchBeforeAfterSeparator = regexp.MustCompile(`(?m)^[ \t]*---$`)
 
-// 解析测试，给定字符串，生成解析后的program
+// 解析给定字符串，生成解析后的program
 func testParse(src string) (parser *_parser, program *ast.Program, err error) {
 	defer func() {
 		if tmp := recover(); tmp != nil {

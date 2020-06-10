@@ -168,7 +168,7 @@ func (f *funcObject) exportType() reflect.Type {
 func (f *funcObject) assertCallable() (func(FunctionCall) Value, bool) {
 	return f.Call, true
 }
-
+// 初始化函数的名称和长度
 func (f *baseFuncObject) init(name string, length int) {
 	f.baseObject.init()
 

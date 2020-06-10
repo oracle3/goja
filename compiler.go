@@ -80,7 +80,7 @@ type block struct {
 	conts      []int
 	outer      *block
 }
-
+// 跳出当前语句块
 func (c *compiler) leaveBlock() {
 	lbl := len(c.p.code)
 	for _, item := range c.block.breaks {
@@ -104,7 +104,7 @@ func (e *CompilerSyntaxError) Error() string {
 func (e *CompilerReferenceError) Error() string {
 	return fmt.Sprintf("ReferenceError: %s", e.Message)
 }
-
+// 构造新的作用域
 func (c *compiler) newScope() {
 	strict := false
 	if c.scope != nil {
@@ -117,11 +117,11 @@ func (c *compiler) newScope() {
 		namesMap: make(map[string]string),
 	}
 }
-
+// 退出当前作用域
 func (c *compiler) popScope() {
 	c.scope = c.scope.outer
 }
-
+// 构造编译器
 func newCompiler() *compiler {
 	c := &compiler{
 		p: &Program{},
@@ -133,7 +133,7 @@ func newCompiler() *compiler {
 	c.scope.dynamic = true
 	return c
 }
-
+// 定义文字值
 func (p *Program) defineLiteralValue(val Value) uint32 {
 	for idx, v := range p.values {
 		if v.SameAs(val) {
@@ -176,7 +176,7 @@ func (s *scope) isFunction() bool {
 	}
 	return s.outer.isFunction()
 }
-
+// 在当前作用域下查找名称
 func (s *scope) lookupName(name string) (idx uint32, found, noDynamics bool) {
 	var level uint32 = 0
 	noDynamics = true
@@ -210,7 +210,7 @@ func (s *scope) lookupName(name string) (idx uint32, found, noDynamics bool) {
 	}
 	return
 }
-
+// 记录名称
 func (s *scope) bindName(name string) (uint32, bool) {
 	if s.lexical {
 		return s.outer.bindName(name)
@@ -242,11 +242,11 @@ func (s *scope) bindNameShadow(name string) (uint32, bool) {
 	s.names[name] = idx
 	return idx, unique
 }
-
+// 记录代码长度
 func (c *compiler) markBlockStart() {
 	c.blockStart = len(c.p.code)
 }
-
+// 编译
 func (c *compiler) compile(in *ast.Program) {
 	c.p.src = NewSrcFile(in.File.Name(), in.File.Source(), in.SourceMap)
 
@@ -284,7 +284,7 @@ func (c *compiler) compile(in *ast.Program) {
 	}
 
 }
-
+// 记录函数和变量名称
 func (c *compiler) compileDeclList(v []ast.Declaration, inFunc bool) {
 	for _, value := range v {
 		switch value := value.(type) {
@@ -297,7 +297,7 @@ func (c *compiler) compileDeclList(v []ast.Declaration, inFunc bool) {
 		}
 	}
 }
-
+//登记函数名
 func (c *compiler) compileFunctions(v []ast.Declaration) {
 	for _, value := range v {
 		if value, ok := value.(*ast.FunctionDeclaration); ok {
@@ -305,7 +305,7 @@ func (c *compiler) compileFunctions(v []ast.Declaration) {
 		}
 	}
 }
-
+// 记录变量名称
 func (c *compiler) compileVarDecl(v *ast.VariableDeclaration, inFunc bool) {
 	for _, item := range v.List {
 		if c.scope.strict {
@@ -390,7 +390,7 @@ func (c *compiler) convertFunctionToStashless(code []instruction, args int) {
 		}
 	}
 }
-
+// 记录函数名称
 func (c *compiler) compileFunctionDecl(v *ast.FunctionDeclaration) {
 	idx, ok := c.scope.bindName(v.Function.Name.Name)
 	if !ok {
@@ -399,7 +399,7 @@ func (c *compiler) compileFunctionDecl(v *ast.FunctionDeclaration) {
 	_ = idx
 	// log.Printf("Define function: %s: %x", v.Function.Name.Name, idx)
 }
-
+//登记函数名
 func (c *compiler) compileFunction(v *ast.FunctionDeclaration) {
 	e := &compiledIdentifierExpr{
 		name: v.Function.Name.Name,
@@ -446,14 +446,14 @@ func (c *compiler) isStrictStatement(s ast.Statement) bool {
 	}
 	return false
 }
-
+// 不能是严格模式保留字
 func (c *compiler) checkIdentifierName(name string, offset int) {
 	switch name {
 	case "implements", "interface", "let", "package", "private", "protected", "public", "static", "yield":
 		c.throwSyntaxError(offset, "Unexpected strict mode reserved word")
 	}
 }
-
+// 在严格模式下不允许赋值给eval或arguments
 func (c *compiler) checkIdentifierLName(name string, offset int) {
 	switch name {
 	case "eval", "arguments":

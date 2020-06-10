@@ -21,7 +21,7 @@ type SrcFile struct {
 	lastScannedOffset int
 	sourceMap         *sourcemap.Consumer
 }
-
+// 构造一个新的SrcFile
 func NewSrcFile(name, src string, sourceMap *sourcemap.Consumer) *SrcFile {
 	return &SrcFile{
 		name:      name,

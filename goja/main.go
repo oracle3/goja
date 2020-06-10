@@ -20,7 +20,7 @@ import (
 
 var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 var timelimit = flag.Int("timelimit", 0, "max time to run (in seconds)")
-
+//读取文件内容到buf
 func readSource(filename string) ([]byte, error) {
 	if filename == "" || filename == "-" {
 		return ioutil.ReadAll(os.Stdin)

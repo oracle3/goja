@@ -7,7 +7,7 @@ import (
 	"github.com/dop251/goja/token"
 	"strconv"
 )
-
+// 编译语句
 func (c *compiler) compileStatement(v ast.Statement, needResult bool) {
 	// log.Printf("compileStatement(): %T", v)
 
@@ -52,7 +52,7 @@ func (c *compiler) compileStatement(v ast.Statement, needResult bool) {
 		panic(fmt.Errorf("Unknown statement type: %T", v))
 	}
 }
-
+// 编译标签语句
 func (c *compiler) compileLabeledStatement(v *ast.LabelledStatement, needResult bool) {
 	label := v.Label.Name
 	for b := c.block; b != nil; b = b.outer {
@@ -73,7 +73,7 @@ func (c *compiler) compileLabeledStatement(v *ast.LabelledStatement, needResult 
 		c.compileGenericLabeledStatement(v.Statement, needResult, label)
 	}
 }
-
+// 编译try语句
 func (c *compiler) compileTryStatement(v *ast.TryStatement) {
 	if c.scope.strict && v.Catch != nil {
 		switch v.Catch.Parameter.Name {
@@ -192,17 +192,17 @@ func (c *compiler) compileTryStatement(v *ast.TryStatement) {
 	c.p.code[lbl2] = jump(len(c.p.code) - lbl2)
 	c.leaveBlock()
 }
-
+// 编译throw语句
 func (c *compiler) compileThrowStatement(v *ast.ThrowStatement) {
 	//c.p.srcMap = append(c.p.srcMap, srcMapItem{pc: len(c.p.code), srcPos: int(v.Throw) - 1})
 	c.compileExpression(v.Argument).emitGetter(true)
 	c.emit(throw)
 }
-
+//编译DoWhile语句
 func (c *compiler) compileDoWhileStatement(v *ast.DoWhileStatement, needResult bool) {
 	c.compileLabeledDoWhileStatement(v, needResult, "")
 }
-
+//编译标记为DoWhile的语句
 func (c *compiler) compileLabeledDoWhileStatement(v *ast.DoWhileStatement, needResult bool, label string) {
 	c.block = &block{
 		typ:        blockLoop,
@@ -225,11 +225,11 @@ func (c *compiler) compileLabeledDoWhileStatement(v *ast.DoWhileStatement, needR
 	c.emit(jeq(start - len(c.p.code)))
 	c.leaveBlock()
 }
-
+// 编译for语句
 func (c *compiler) compileForStatement(v *ast.ForStatement, needResult bool) {
 	c.compileLabeledForStatement(v, needResult, "")
 }
-
+// 编译for语句
 func (c *compiler) compileLabeledForStatement(v *ast.ForStatement, needResult bool, label string) {
 	c.block = &block{
 		typ:        blockLoop,
@@ -297,11 +297,11 @@ end:
 	c.leaveBlock()
 	c.markBlockStart()
 }
-
+// 编译forin语句
 func (c *compiler) compileForInStatement(v *ast.ForInStatement, needResult bool) {
 	c.compileLabeledForInStatement(v, needResult, "")
 }
-
+// 编译forin语句
 func (c *compiler) compileLabeledForInStatement(v *ast.ForInStatement, needResult bool, label string) {
 	c.block = &block{
 		typ:        blockLoopEnum,
@@ -332,11 +332,11 @@ func (c *compiler) compileLabeledForInStatement(v *ast.ForInStatement, needResul
 	c.markBlockStart()
 	c.emit(enumPop)
 }
-
+// 编译while语句
 func (c *compiler) compileWhileStatement(v *ast.WhileStatement, needResult bool) {
 	c.compileLabeledWhileStatement(v, needResult, "")
 }
-
+// 编译while语句
 func (c *compiler) compileLabeledWhileStatement(v *ast.WhileStatement, needResult bool, label string) {
 	c.block = &block{
 		typ:        blockLoop,
@@ -387,16 +387,16 @@ end:
 	c.leaveBlock()
 	c.markBlockStart()
 }
-
+// 编译空语句
 func (c *compiler) compileEmptyStatement(needResult bool) {
 	if needResult {
 		if len(c.p.code) == c.blockStart {
-			// first statement in block, use undefined as result
+			// first statement in block, use undefined as result 块中的第一个语句，使用未定义作为结果
 			c.emit(loadUndef)
 		}
 	}
 }
-
+//编译分支语句
 func (c *compiler) compileBranchStatement(v *ast.BranchStatement, needResult bool) {
 	switch v.Token {
 	case token.BREAK:
@@ -407,7 +407,7 @@ func (c *compiler) compileBranchStatement(v *ast.BranchStatement, needResult boo
 		panic(fmt.Errorf("Unknown branch statement token: %s", v.Token.String()))
 	}
 }
-
+// 查找分支语句
 func (c *compiler) findBranchBlock(st *ast.BranchStatement) *block {
 	switch st.Token {
 	case token.BREAK:
@@ -417,7 +417,7 @@ func (c *compiler) findBranchBlock(st *ast.BranchStatement) *block {
 	}
 	return nil
 }
-
+// 查找查找最近的循环语句
 func (c *compiler) findContinueBlock(label *ast.Identifier) (block *block) {
 	if label != nil {
 		for b := c.block; b != nil; b = b.outer {
@@ -438,7 +438,7 @@ func (c *compiler) findContinueBlock(label *ast.Identifier) (block *block) {
 
 	return
 }
-
+// 查找最近的break语句
 func (c *compiler) findBreakBlock(label *ast.Identifier) (block *block) {
 	if label != nil {
 		for b := c.block; b != nil; b = b.outer {
@@ -461,7 +461,7 @@ func (c *compiler) findBreakBlock(label *ast.Identifier) (block *block) {
 
 	return
 }
-
+// 编译break
 func (c *compiler) compileBreak(label *ast.Identifier, idx file.Idx) {
 	var block *block
 	if label != nil {
@@ -503,7 +503,7 @@ func (c *compiler) compileBreak(label *ast.Identifier, idx file.Idx) {
 		c.throwSyntaxError(int(idx)-1, "Undefined label '%s'", label.Name)
 	}
 }
-
+// 编译continue
 func (c *compiler) compileContinue(label *ast.Identifier, idx file.Idx) {
 	var block *block
 	if label != nil {
@@ -537,7 +537,7 @@ func (c *compiler) compileContinue(label *ast.Identifier, idx file.Idx) {
 		c.throwSyntaxError(int(idx)-1, "Undefined label '%s'", label.Name)
 	}
 }
-
+//编译If语句
 func (c *compiler) compileIfStatement(v *ast.IfStatement, needResult bool) {
 	test := c.compileExpression(v.Test)
 	if test.constant() {
@@ -559,6 +559,7 @@ func (c *compiler) compileIfStatement(v *ast.IfStatement, needResult bool) {
 			}
 		} else {
 			// TODO: Properly implement dummy compilation (no garbage in block, scope, etc..)
+			//正确实现伪编译（块、作用域等中没有垃圾）
 			p := c.p
 			c.p = &Program{}
 			c.compileStatement(v.Consequent, false)
@@ -598,7 +599,7 @@ func (c *compiler) compileIfStatement(v *ast.IfStatement, needResult bool) {
 		}
 	}
 }
-
+// 编译return表达式
 func (c *compiler) compileReturnStatement(v *ast.ReturnStatement) {
 	if v.Argument != nil {
 		c.compileExpression(v.Argument).emitGetter(true)
@@ -616,7 +617,7 @@ func (c *compiler) compileReturnStatement(v *ast.ReturnStatement) {
 	}
 	c.emit(ret)
 }
-
+// 编译变量表达式
 func (c *compiler) compileVariableStatement(v *ast.VariableStatement, needResult bool) {
 	for _, expr := range v.List {
 		c.compileExpression(expr).emitGetter(false)
@@ -625,7 +626,7 @@ func (c *compiler) compileVariableStatement(v *ast.VariableStatement, needResult
 		c.emit(loadUndef)
 	}
 }
-
+//返回中第一个非空语句
 func (c *compiler) getFirstNonEmptyStatement(st ast.Statement) ast.Statement {
 	switch st := st.(type) {
 	case *ast.BlockStatement:
@@ -635,7 +636,7 @@ func (c *compiler) getFirstNonEmptyStatement(st ast.Statement) ast.Statement {
 	}
 	return st
 }
-
+// 返回列表中第一个非空语句
 func (c *compiler) getFirstNonEmptyStatementList(list []ast.Statement) ast.Statement {
 	for _, st := range list {
 		switch st := st.(type) {
@@ -650,13 +651,13 @@ func (c *compiler) getFirstNonEmptyStatementList(list []ast.Statement) ast.State
 	}
 	return nil
 }
-
+//编译语句
 func (c *compiler) compileStatements(list []ast.Statement, needResult bool) {
 	if len(list) > 0 {
 		cur := list[0]
 		for idx := 0; idx < len(list); {
 			var next ast.Statement
-			// find next non-empty statement
+			// find next non-empty statement 查找下一个非空语句
 			for idx++; idx < len(list); idx++ {
 				if _, empty := list[idx].(*ast.EmptyStatement); !empty {
 					next = list[idx]
@@ -686,7 +687,7 @@ func (c *compiler) compileStatements(list []ast.Statement, needResult bool) {
 		}
 	}
 }
-
+//编译普通标记语句
 func (c *compiler) compileGenericLabeledStatement(v ast.Statement, needResult bool, label string) {
 	c.block = &block{
 		typ:        blockBranch,
@@ -697,11 +698,11 @@ func (c *compiler) compileGenericLabeledStatement(v ast.Statement, needResult bo
 	c.compileStatement(v, needResult)
 	c.leaveBlock()
 }
-
+//编译块语句
 func (c *compiler) compileBlockStatement(v *ast.BlockStatement, needResult bool) {
 	c.compileStatements(v.List, needResult)
 }
-
+// 编译表达式语句
 func (c *compiler) compileExpressionStatement(v *ast.ExpressionStatement, needResult bool) {
 	expr := c.compileExpression(v.Expression)
 	if expr.constant() {
@@ -710,9 +711,10 @@ func (c *compiler) compileExpressionStatement(v *ast.ExpressionStatement, needRe
 		expr.emitGetter(needResult)
 	}
 }
-
+// 编译with语句
 func (c *compiler) compileWithStatement(v *ast.WithStatement, needResult bool) {
 	if c.scope.strict {
+		// 严格模式代码不能包含with语句
 		c.throwSyntaxError(int(v.With)-1, "Strict mode code may not include a with statement")
 		return
 	}
@@ -731,7 +733,7 @@ func (c *compiler) compileWithStatement(v *ast.WithStatement, needResult bool) {
 	c.leaveBlock()
 	c.popScope()
 }
-
+// 编译switch语句
 func (c *compiler) compileSwitchStatement(v *ast.SwitchStatement, needResult bool) {
 	c.block = &block{
 		typ:        blockSwitch,

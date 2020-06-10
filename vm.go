@@ -383,7 +383,7 @@ func (vm *vm) try(f func()) (ex *Exception) {
 	f()
 	return
 }
-
+// 执行try
 func (vm *vm) runTry() (ex *Exception) {
 	return vm.try(vm.run)
 }

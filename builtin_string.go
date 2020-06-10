@@ -47,7 +47,7 @@ func (r *Runtime) _newString(s valueString) *Object {
 	o.init()
 	return v
 }
-
+// 根据args构造一个字符串
 func (r *Runtime) builtin_newString(args []Value) *Object {
 	var s valueString
 	if len(args) > 0 {
@@ -71,7 +71,7 @@ func searchSubstringUTF8(str, search string) (ret [][]int) {
 	}
 	return
 }
-
+//返回指定对象的字符串形式
 func (r *Runtime) stringproto_toStringValueOf(this Value, funcName string) Value {
 	if str, ok := this.assertString(); ok {
 		return str
@@ -94,7 +94,7 @@ func (r *Runtime) stringproto_toString(call FunctionCall) Value {
 func (r *Runtime) stringproto_valueOf(call FunctionCall) Value {
 	return r.stringproto_toStringValueOf(call.This, "valueOf")
 }
-
+//String.fromCharCode() 方法返回由指定的UTF-16代码单元序列创建的字符串
 func (r *Runtime) string_fromcharcode(call FunctionCall) Value {
 	b := make([]byte, len(call.Arguments))
 	for i, arg := range call.Arguments {
