@@ -3,7 +3,7 @@ package goja
 import (
 	"fmt"
 	"github.com/dlclark/regexp2"
-	"github.com/dop251/goja/parser"
+	"github.com/oracle3/goja/parser"
 	"regexp"
 )
 // 创建一个正则表达式对象

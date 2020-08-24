@@ -277,6 +277,15 @@ func (vm *vm) newStash() {
 
 func (vm *vm) init() {
 }
+
+func (vm *vm) SetProgram(prg *Program)  {
+	vm.prg = prg
+}
+
+func (vm *vm) Run()  {
+	vm.run()
+}
+
 // 虚拟机执行，会被中断
 func (vm *vm) run() {
 	vm.halt = false

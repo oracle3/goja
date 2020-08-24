@@ -14,8 +14,8 @@ ast包声明表示JavaScript ast的类型。
 package ast
 
 import (
-	"github.com/dop251/goja/file"
-	"github.com/dop251/goja/token"
+	"github.com/oracle3/goja/file"
+	"github.com/oracle3/goja/token"
 	"github.com/go-sourcemap/sourcemap"
 )
 

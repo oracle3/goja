@@ -1,9 +1,9 @@
 package parser
 
 import (
-	"github.com/dop251/goja/ast"
-	"github.com/dop251/goja/file"
-	"github.com/dop251/goja/token"
+	"github.com/oracle3/goja/ast"
+	"github.com/oracle3/goja/file"
+	"github.com/oracle3/goja/token"
 )
 // 解析标识符
 func (self *_parser) parseIdentifier() *ast.Identifier {

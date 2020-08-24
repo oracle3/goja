@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dop251/goja/ast"
-	"github.com/dop251/goja/file"
+	"github.com/oracle3/goja/ast"
+	"github.com/oracle3/goja/file"
 )
 
 // 获取第一个错误信息

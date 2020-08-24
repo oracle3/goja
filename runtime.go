@@ -13,8 +13,8 @@ import (
 
 	"golang.org/x/text/collate"
 
-	js_ast "github.com/dop251/goja/ast"
-	"github.com/dop251/goja/parser"
+	js_ast "github.com/oracle3/goja/ast"
+	"github.com/oracle3/goja/parser"
 )
 
 const (

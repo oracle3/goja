@@ -74,7 +74,7 @@ type valueProperty struct {
 	value        Value
 	writable     bool // 可写
 	configurable bool // 可删除
-	enumerable   bool
+	enumerable   bool // 表示指定的属性是否可枚举
 	accessor     bool
 	getterFunc   *Object
 	setterFunc   *Object

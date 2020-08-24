@@ -1,7 +1,8 @@
 package goja
 
 import (
-	"github.com/dop251/goja/parser"
+	"fmt"
+	"github.com/oracle3/goja/parser"
 	"testing"
 )
 
@@ -387,4 +388,41 @@ func BenchmarkFuncCall(b *testing.B) {
 	} else {
 		b.Fatal("f is not a function")
 	}
+}
+
+func log(call FunctionCall) Value {
+	str := call.Argument(0)
+	fmt.Println(str.String())
+	return str
+}
+
+func TestArray(t *testing.T) {
+	const SCRIPT = `
+var animals = ['pigs', 'goats', 'sheep'];
+var len = animals.length;
+//console.log(animals.length);
+//var count = animals.push('cows');
+//console.log(count);
+//// expected output: 4
+//console.log(animals);
+//// expected output: Array ["pigs", "goats", "sheep", "cows"]
+//
+//animals.push('chickens', 'cats', 'dogs');
+//console.log(animals);
+	`
+
+	vm := New()
+	console := vm.NewObject()
+	console.Set("log", log)
+	vm.Set("console", console)
+
+	prg := MustCompile("test.js", SCRIPT, false)
+
+	result,err := vm.RunProgram(prg)
+	if err != nil {
+		fmt.Println(err.Error())
+	} else {
+		fmt.Println(result.String())
+	}
+
 }

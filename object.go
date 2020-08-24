@@ -64,12 +64,12 @@ type objectImpl interface {
 
 type baseObject struct {
 	class      string // 类名
-	val        *Object
-	prototype  *Object // 类属性对象
-	extensible bool
+	val        *Object // 自己
+	prototype  *Object // 原型，感觉是父节点
+	extensible bool // 可扩展属性
 
-	values    map[string]Value
-	propNames []string
+	values    map[string]Value // 所有的属性和属性值，可以是函数名和函数
+	propNames []string // 所有的属性列表，便于遍历
 }
 
 type primitiveValueObject struct {

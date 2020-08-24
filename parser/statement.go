@@ -2,9 +2,9 @@ package parser
 
 import (
 	"encoding/base64"
-	"github.com/dop251/goja/ast"
-	"github.com/dop251/goja/file"
-	"github.com/dop251/goja/token"
+	"github.com/oracle3/goja/ast"
+	"github.com/oracle3/goja/file"
+	"github.com/oracle3/goja/token"
 	"github.com/go-sourcemap/sourcemap"
 	"io/ioutil"
 	"net/url"

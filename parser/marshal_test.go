@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dop251/goja/ast"
+	"github.com/oracle3/goja/ast"
 )
 // 构造一个json格式的数据
 func marshal(name string, children ...interface{}) interface{} {

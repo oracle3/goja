@@ -850,6 +850,7 @@ func (r *Runtime) initArray() {
 	r.addToGlobal("Array", r.global.Array)
 }
 
+// 排序接口
 type sortable interface {
 	sortLen() int64
 	sortGet(int64) Value
@@ -906,15 +907,17 @@ func (ctx *arraySortCtx) sortCompare(x, y Value) int {
 }
 
 // sort.Interface
+//数据集合实现了这三个方法后，即可调用该包的 Sort() 方法进行排序。
 
+// 获取数据集合元素个数
 func (a *arraySortCtx) Len() int {
 	return int(a.obj.sortLen())
 }
-
+// 如果 i 索引的数据小于 j 索引的数据，返回 true，且不会调用下面的 Swap()，即数据升序排序。
 func (a *arraySortCtx) Less(j, k int) bool {
 	return a.sortCompare(a.obj.sortGet(int64(j)), a.obj.sortGet(int64(k))) < 0
 }
-
+// 交换 i 和 j 索引的两个元素的位置
 func (a *arraySortCtx) Swap(j, k int) {
 	a.obj.swap(int64(j), int64(k))
 }
